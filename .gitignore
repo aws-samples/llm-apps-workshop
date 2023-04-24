@@ -3,3 +3,6 @@ function.zip
 env/
 .ipynb_checkpoints/
 1.py
+RAG_AWS_OPEN_SEARCH_XIN_HUANG_0419.ipynb
+rag.yaml
+rag2.yaml
