@@ -1,4 +1,5 @@
 __pycache__/
+apps/deps/
 function.zip
 env/
 .ipynb_checkpoints/
