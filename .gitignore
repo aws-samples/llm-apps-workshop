@@ -1,5 +1,6 @@
 __pycache__/
-apps/deps/
+blogs/rag/api/deps/
+blogs/rag/api/function.zip
 function.zip
 env/
 .ipynb_checkpoints/
