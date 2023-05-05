@@ -50,9 +50,9 @@ Parameters:
     Type: String    
     Description: Name of the OpenSearch index for storing embeddings.
   AppName:
-    Default: llm_apps_workshop
+    Default: llm-apps-workshop
     Type: String
-    AllowedValues: [llm_apps_workshop]
+    AllowedValues: [llm-apps-workshop]
     Description: Name of the overall application, this is used while creating the ML model endpoint.
   LambdaFunctionName:
     Default: LLMApp
