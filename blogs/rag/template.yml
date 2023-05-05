@@ -13,6 +13,7 @@ Metadata:
           - OpenSearchIndexName
           - LambdaFunctionName
           - APIGatewayName
+          - SageMakerNotebookName
     ParameterLabels:      
       AppName:
         default: Name of the overall application
@@ -26,6 +27,8 @@ Metadata:
         default: Lambda function name
       APIGatewayName:
         default: API gateway name
+      SageMakerNotebookName:
+        default: Name of SageMaker Notebook Instance
       
 Parameters:
   OpenSearchUsername:
@@ -61,7 +64,27 @@ Parameters:
     Type: String
     AllowedPattern: '[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+'
     Description: Name of the Lambda function for LLM Apps
-    
+  SageMakerNotebookName:
+    Default: aws-llm-apps-blog
+    Type: String
+    Description: Enter name of SageMaker Notebook instance. The notebook name must _not_ already exist in your AWS account/region.
+    MinLength: 1
+    MaxLength: 63
+    AllowedPattern: ^[a-z0-9](-*[a-z0-9])*
+    ConstraintDescription: Must be lowercase or numbers with a length of 1-63 characters.
+  SageMakerIAMRole:
+    Description: Name of IAM role that will be created by this cloud formation template. The role name must _not_ already exist in your AWS account.
+    Type: String
+    Default: "LLMAppsBlogIAMRole-"   
+  LambdaCodeS3Bucket:
+    Description: Name of the S3 bucket containing the function.zip file for the LLMApp Lambda.
+    Type: String
+    Default: "aws-blogs-artifacts-public"  
+  LambdaCodeS3Key:
+    Description: The S3 key in the bucket containing the function.zip file for the LLMApp Lambda.
+    Type: String
+    Default: "artifacts/ML-14328/function.zip"   
+
 Resources:
   OpenSearchSecret:
     Type: AWS::SecretsManager::Secret
@@ -79,6 +102,7 @@ Resources:
   NotebookInstance:
     Type: AWS::SageMaker::NotebookInstance
     Properties:
+      NotebookInstanceName: !Ref SageMakerNotebookName
       InstanceType: ml.t3.2xlarge
       RoleArn: !GetAtt Role.Arn
       DefaultCodeRepository: !GetAtt CodeRepository.CodeRepositoryName
@@ -86,6 +110,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Ref SageMakerIAMRole
       Policies:
         - PolicyName: CustomNotebookAccess
           PolicyDocument:
@@ -267,8 +292,8 @@ Resources:
       Description: Lambda function for providing an LLM app (text generation, RAG) endpoint.
       Runtime: python3.9
       Code:
-        S3Bucket: qa-w-rag-finetuned-llm
-        S3Key: llm-apps-workshop/function.zip
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
       Handler: app.main.handler
       MemorySize: 512
       Timeout: 60
@@ -372,23 +397,6 @@ Outputs:
   Region:
     Description: Deployed Region
     Value: !Ref AWS::Region
-
-  s3BucketTraining:
-    Description: S3 bucket name for training
-    Value: !Ref s3BucketTraining
-
-  s3BucketHostingBucketName:
-    Description: S3 bucket name for frontend hosting
-    Value: !Ref s3BucketHosting
-
-  S3BucketSecureURL:
-    Value: !Join
-      - ''
-      - - 'https://'
-        - !GetAtt
-          - s3BucketHosting
-          - DomainName
-    Description: Name of S3 bucket to hold website content
 
   SageMakerNotebookURL:
     Description: SageMaker Notebook Instance
