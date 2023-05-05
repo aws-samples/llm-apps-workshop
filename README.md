@@ -14,7 +14,6 @@ The code in this repo is organized into the following sub-folders, each having i
 ├── README.md
 ├── blogs/
 ├── workshop/
-├── apps/
 ```
 
 ## Security
