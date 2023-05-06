@@ -122,6 +122,11 @@ Resources:
                   - "es:ESHttp*"
                 Resource:
                   - !Sub arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*
+              - Sid: ReadSecretFromSecretsManager
+                Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                Resource: "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
               - Sid: ReadWriteFromECR
                 Effect: Allow
                 Action:
