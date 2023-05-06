@@ -97,7 +97,7 @@ Resources:
     Type: AWS::SageMaker::CodeRepository
     Properties:
       GitConfig:
-          RepositoryUrl: https://github.com/aws-samples/semantic-search-with-amazon-opensearch
+          RepositoryUrl: https://github.com/aws-samples/llm-apps-workshop
 
   NotebookInstance:
     Type: AWS::SageMaker::NotebookInstance
