@@ -84,6 +84,10 @@ Parameters:
     Description: The S3 key in the bucket containing the function.zip file for the LLMApp Lambda.
     Type: String
     Default: "artifacts/ML-14328/function.zip"   
+  ApiStageName:
+    Description: The APi Gateway API stage name
+    Type: String
+    Default: prod
 
 Resources:
   OpenSearchSecret:
@@ -126,7 +130,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - "secretsmanager:GetSecretValue"
-                Resource: "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
               - Sid: ReadWriteFromECR
                 Effect: Allow
                 Action:
@@ -305,7 +309,7 @@ Resources:
       - "APIGatewayRootMethod"
     Properties:
       RestApiId: !Ref "APIGateway"
-      StageName: prod
+      StageName: !Ref ApiStageName
 
   LLMAppFunction:
     Type: AWS::Lambda::Function
@@ -440,3 +444,7 @@ Outputs:
   OpenSearchSecret:
     Description: Name of the OpenSearch secret in Secrets Manager
     Value: !Ref OpenSearchSecret
+
+  LLMAppAPIEndpoint:
+    Description: "API Prod stage endpoint"
+    Value: !Sub "https://${APIGateway}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/"
