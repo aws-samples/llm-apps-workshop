@@ -5,12 +5,12 @@ import logging
 from typing import List, Callable
 from urllib.parse import urlparse
 from langchain.vectorstores import FAISS
-from .fastapi_request import SAGEMAKER_ENDPOINT_MAPPING
 from langchain.vectorstores import OpenSearchVectorSearch
 from langchain.embeddings import SagemakerEndpointEmbeddings
 from langchain.llms.sagemaker_endpoint import SagemakerEndpoint
-from langchain.llms.sagemaker_endpoint import ContentHandlerBase
 from langchain.llms.sagemaker_endpoint import LLMContentHandler
+from langchain.llms.sagemaker_endpoint import ContentHandlerBase
+from .fastapi_request import SAGEMAKER_ENDPOINT_MAPPING, Request
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
 
 logger = logging.getLogger(__name__)
@@ -112,11 +112,6 @@ def load_vector_db_opensearch(secret_id: str,
                                        opensearch_url=opensearch_domain_endpoint,
                                        http_auth=http_auth)
     logger.info(f"returning handle to OpenSearchVectorSearch, vector_db={vector_db}")
-    q = "Which XGBoost versions does SageMaker support?"
-    docs = vector_db.similarity_search(q, k=3) #, search_type="script_scoring", space_type="cosinesimil"
-    for doc in docs:
-        logger.info("----------")
-        logger.info(f"content=\"{doc.page_content}\",\nmetadata=\"{doc.metadata}\"")
     return vector_db
 
 def load_vector_db_faiss(vectordb_s3_path: str, vectordb_local_path: str, embeddings_endpoint_name: str, region: str) -> FAISS:
@@ -144,15 +139,16 @@ def load_vector_db_faiss(vectordb_s3_path: str, vectordb_local_path: str, embedd
 
     return vector_db
 
-def setup_sagemaker_endpoint_for_text_generation(endpoint_name: str, region: str = "us-east-1") -> Callable:
+def setup_sagemaker_endpoint_for_text_generation(req: Request, region: str = "us-east-1") -> Callable:
     parameters = {
-    "max_length": 200,
-    "num_return_sequences": 1,
-    "top_k": 250,
-    "top_p": 0.95,
-    "do_sample": False,
-    "temperature": 1,}
-
+    "max_length": req.max_length,
+    "num_return_sequences": req.num_return_sequences,
+    "top_k": req.top_k,
+    "top_p": req.top_p,
+    "do_sample": req.do_sample,
+    "temperature": req.temperature,}
+    
+    endpoint_name = req.text_generation_model
     content_handler = ContentHandlerForTextGeneration()    
     print(f"SAGEMAKER_ENDPOINT_MAPPING[{endpoint_name}]={SAGEMAKER_ENDPOINT_MAPPING[endpoint_name]}")
     sm_llm = SagemakerEndpoint(

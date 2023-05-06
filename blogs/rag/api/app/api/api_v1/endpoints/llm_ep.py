@@ -16,7 +16,7 @@ from .initialize import (setup_sagemaker_endpoint_for_text_generation,
                         load_vector_db_faiss,
                         load_vector_db_opensearch)
 
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger()
 #logging.basicConfig(format='%(asctime)s,%(module)s,%(processName)s,%(levelname)s,%(message)s', level=logging.INFO)
 
@@ -24,6 +24,7 @@ logger = logging.getLogger()
 # can persist across lambda invocations
 VECTOR_DB_DIR = os.path.join("/tmp", "_vectordb")
 _vector_db = None
+_current_vectordb_type = None
 _sm_llm = None
 
 router = APIRouter()
@@ -32,7 +33,13 @@ def _init(req: Request):
     # vector db is a global static variable, so that it only
     # created once across multiple lambda invocations, if possible
     global _vector_db
+    global _current_vectordb_type
     logger.info(f"req.vectordb_type={req.vectordb_type}, _vector_db={_vector_db}")
+    if req.vectordb_type != _current_vectordb_type:
+        logger.info(f"req.vectordb_type={req.vectordb_type} does not match _current_vectordb_type={_current_vectordb_type}, "
+                    f"resetting _vector_db")
+        _vector_db = None
+
     if req.vectordb_type == VectorDBType.OPENSEARCH and _vector_db is None:
         # ARN of the secret is of the following format arn:aws:secretsmanager:region:account_id:secret:my_path/my_secret_name-autoid
         os_creds_secretid_in_secrets_manager = "-".join(os.environ.get('OPENSEARCH_SECRET').split(":")[-1].split('-')[:-1])
@@ -59,7 +66,7 @@ def _init(req: Request):
     global _sm_llm
     if _sm_llm is None:
         logger.info(f"SM LLM endpoint is not setup, setting it up now")
-        _sm_llm = setup_sagemaker_endpoint_for_text_generation(req.text_generation_model,
+        _sm_llm = setup_sagemaker_endpoint_for_text_generation(req,
                                                                boto3.Session().region_name)
         logger.info("after setting up sagemaker llm endpoint")
     else:

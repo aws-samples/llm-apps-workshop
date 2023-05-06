@@ -50,9 +50,9 @@ Parameters:
     Type: String    
     Description: Name of the OpenSearch index for storing embeddings.
   AppName:
-    Default: llm-apps-workshop
+    Default: llm-apps-blog
     Type: String
-    AllowedValues: [llm-apps-workshop]
+    AllowedValues: [llm-apps-blog]
     Description: Name of the overall application, this is used while creating the ML model endpoint.
   LambdaFunctionName:
     Default: LLMApp
@@ -116,11 +116,28 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
+              - Sid: ReadFromOpenSearch
+                Effect: Allow
                 Action:
                   - "es:ESHttp*"
                 Resource:
                   - !Sub arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*
+              - Sid: ReadWriteFromECR
+                Effect: Allow
+                Action:
+                  - "ecr:BatchGetImage"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:DescribeImages"
+                  - "ecr:DescribeRepositories"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:ListImages"
+                  - "ecr:PutImage"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:CreateRepository"
+                  - "ecr:GetAuthorizationToken"
+                Resource: "*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
         - arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess
@@ -312,6 +329,7 @@ Resources:
           OPENSEARCH_SECRET: !Ref OpenSearchSecret
           OPENSEARCH_DOMAIN_ENDPOINT: !GetAtt OpenSearchServiceDomain.DomainEndpoint
           OPENSEARCH_INDEX: !Ref OpenSearchIndexName
+          APP_NAME: !Ref AppName
 
   LambdaApiGatewayInvoke:
     Type: "AWS::Lambda::Permission"

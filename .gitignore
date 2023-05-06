@@ -8,3 +8,8 @@ env/
 RAG_AWS_OPEN_SEARCH_XIN_HUANG_0419.ipynb
 rag.yaml
 rag2.yaml
+blogs/rag/container/
+blogs/rag/docs/
+blogs/rag/faiss_index/
+blogs/rag/sagemaker.readthedocs.io/
+blogs/rag/scripts/
