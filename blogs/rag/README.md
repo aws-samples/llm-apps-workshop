@@ -36,7 +36,7 @@ Follow the steps listed below prior to running the notebooks included in this re
 
 1. Do a `Run All` for this notebook. It will ingest the data (embeddings) into the OpenSearch cluster and once that is done, we are now ready to ask some questions via the `/rag` endpoint of the Lambda function.
 
-1. Query the API Gateway `/rag` endpoint using the following command:
+1. Query the API Gateway `/rag` endpoint using the following command. The endpoint can be seen on the Outputs tab of the cloud formation stack, it is value of the `LLMAppAPIEndpoint` key.
 
     ```{{bash}}
     curl -X POST "https://replace-with-your-api-gw-url/prod/api/v1/llm/rag" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"q\":\"Which versions of XGBoost does SageMaker support?\"}"
