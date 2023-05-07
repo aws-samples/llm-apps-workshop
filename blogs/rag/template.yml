@@ -446,5 +446,5 @@ Outputs:
     Value: !Ref OpenSearchSecret
 
   LLMAppAPIEndpoint:
-    Description: "API Prod stage endpoint"
+    Description: "API (prod) stage endpoint"
     Value: !Sub "https://${APIGateway}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/"
