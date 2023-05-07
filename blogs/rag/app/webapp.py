@@ -40,8 +40,6 @@ outputs = get_cfn_outputs(CFN_STACK_NAME)
 # this is retrieved from the cloud formation template that was
 # used to create this solution
 api: str = outputs.get("LLMAppAPIEndpoint")
-# backwards compatibility
-api = api if api is not None else outputs.get("ProdDataEndpoint")
 api_rag_ep: str = f"{api}/api/v1/llm/rag"
 api_text2text_ep: str = f"{api}/api/v1/llm/text2text"
 print(f"api_rag_ep={api_rag_ep}\napi_text2text_ep={api_text2text_ep}")
