@@ -38,9 +38,18 @@ Follow the steps listed below prior to running the notebooks included in this re
 
 1. Query the API Gateway `/rag` endpoint using the following command:
 
-```
-curl -X POST "https://replace-with-your-api-gw-url/prod/api/v1/llm/rag" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"q\":\"Which versions of XGBoost does SageMaker support?\"}"
-```
+    ```{{bash}}
+    curl -X POST "https://replace-with-your-api-gw-url/prod/api/v1/llm/rag" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"q\":\"Which versions of XGBoost does SageMaker support?\"}"
+    ```
+1. Run the [`streamlit`](https://streamlit.io/) app for the chatbot on `SageMaker Studio`. One `Sagemaker Studio` create a new `Terminal` and run the following commands:
+
+    ```{{bash}}
+    git clone https://github.com/aws-samples/llm-apps-workshop    
+    cd llm-apps-workshop/blogs/rag/app
+    pip install -r requirements.txt
+    streamlit run app.py    
+    ```
+    This will start a streamlit app on SageMaker Studio, you can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app`
 
 ### Building your version of the Lambda
 
