@@ -45,25 +45,25 @@ curl -X POST "https://replace-with-your-api-gw-url/prod/api/v1/llm/rag" -H  "acc
 ### Building your version of the Lambda
 
 1. Open a new Terminal on the SageMaker Notebook and change to the `rag` directory using the following command:
-```
-cd /home/ec2-user/SageMaker/repos/llm-apps-workshop/blogs/rag/api
-```
+
+    ```
+    cd /home/ec2-user/SageMaker/repos/llm-apps-workshop/blogs/rag/api
+    ```
 
 1. Create a `conda` environment for `Python 3.9`.
 
-```{{bash}}
+    ```{{bash}}
 
-conda create -n py39 python=3.9 -y
+    conda create -n py39 python=3.9 -y
 
-# activate the environment
-source activate py39
-```
+    # activate the environment
+    source activate py39
+    ```
 
 1. Package and upload `function.zip` to the SageMaker bucket for your region.
 
-```{{bash}}
-./deploy.sh
-```
+    ```{{bash}}
+    ./deploy.sh
+    ```
 
 1. Update the code for the Lambda function to point to the S3 file uploaded in the step above.
-
