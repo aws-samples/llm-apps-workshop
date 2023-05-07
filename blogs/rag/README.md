@@ -41,7 +41,7 @@ Follow the steps listed below prior to running the notebooks included in this re
     ```{{bash}}
     curl -X POST "https://replace-with-your-api-gw-url/prod/api/v1/llm/rag" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"q\":\"Which versions of XGBoost does SageMaker support?\"}"
     ```
-1. Run the [`streamlit`](https://streamlit.io/) app for the chatbot on `SageMaker Studio`. One `Sagemaker Studio` create a new `Terminal` and run the following commands:
+1. Run the [`streamlit`](https://streamlit.io/) app for the chatbot on `SageMaker Studio`. On `Sagemaker Studio` create a new `Terminal` and run the following commands:
 
     ```{{bash}}
     git clone https://github.com/aws-samples/llm-apps-workshop    
