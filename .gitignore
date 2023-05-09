@@ -13,3 +13,6 @@ blogs/rag/docs/
 blogs/rag/faiss_index/
 blogs/rag/sagemaker.readthedocs.io/
 blogs/rag/scripts/
+opensearch.yml
+1.*
+4.yaml

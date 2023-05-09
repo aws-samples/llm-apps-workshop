@@ -1,0 +1,450 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to provision OpenSearch cluster and SageMaker Notebook for semantic search
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Required Parameters
+        Parameters:
+          - AppName          
+          - OpenSearchUsername
+          - OpenSearchPassword
+          - OpenSearchIndexName
+          - LambdaFunctionName
+          - APIGatewayName
+          - SageMakerNotebookName
+    ParameterLabels:      
+      AppName:
+        default: Name of the overall application
+      OpenSearchUsername:
+        default: OpenSearch cluster username
+      OpenSearchPassword:
+        default: OpenSearch cluster password
+      OpenSearchIndexName:
+        default: OpenSearch index name
+      LambdaFunctionName:
+        default: Lambda function name
+      APIGatewayName:
+        default: API gateway name
+      SageMakerNotebookName:
+        default: Name of SageMaker Notebook Instance
+      
+Parameters:
+  OpenSearchUsername:
+    AllowedPattern: '^[a-zA-Z0-9]+$'
+    Default: opensearchuser
+    Description: User name for the account that will be added to the OpenSearch cluster.
+    MaxLength: '25'
+    MinLength: '5'
+    Type: String
+  OpenSearchPassword:
+    AllowedPattern: '(?=^.{8,32}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*'
+    Description: Password for the account named above. Must be at least 8 characters containing letters, numbers and symbols
+    MaxLength: '32'
+    MinLength: '8'
+    NoEcho: 'true'
+    Type: String
+  OpenSearchIndexName:
+    Default: llm_apps_workshop_embeddings
+    Type: String    
+    Description: Name of the OpenSearch index for storing embeddings.
+  AppName:
+    Default: llm-apps-blog
+    Type: String
+    AllowedValues: [llm-apps-blog]
+    Description: Name of the overall application, this is used while creating the ML model endpoint.
+  LambdaFunctionName:
+    Default: LLMApp
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+'
+    Description: Name of the Lambda function for LLM Apps
+  APIGatewayName:
+    Default: LLMAppAPIGW
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+'
+    Description: Name of the Lambda function for LLM Apps
+  SageMakerNotebookName:
+    Default: aws-llm-apps-blog
+    Type: String
+    Description: Enter name of SageMaker Notebook instance. The notebook name must _not_ already exist in your AWS account/region.
+    MinLength: 1
+    MaxLength: 63
+    AllowedPattern: ^[a-z0-9](-*[a-z0-9])*
+    ConstraintDescription: Must be lowercase or numbers with a length of 1-63 characters.
+  SageMakerIAMRole:
+    Description: Name of IAM role that will be created by this cloud formation template. The role name must _not_ already exist in your AWS account.
+    Type: String
+    Default: "LLMAppsBlogIAMRole-"   
+  LambdaCodeS3Bucket:
+    Description: Name of the S3 bucket containing the function.zip file for the LLMApp Lambda.
+    Type: String
+    Default: "aws-blogs-artifacts-public"  
+  LambdaCodeS3Key:
+    Description: The S3 key in the bucket containing the function.zip file for the LLMApp Lambda.
+    Type: String
+    Default: "artifacts/ML-14328/function.zip"   
+  ApiStageName:
+    Description: The APi Gateway API stage name
+    Type: String
+    Default: prod
+
+Resources:
+  OpenSearchSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub OpenSearchSecret-${AWS::StackName}
+      Description: OpenSearch username and password
+      SecretString: !Sub '{ "username" : "${OpenSearchUsername}", "password" : "${OpenSearchPassword}" }'
+
+  CodeRepository:
+    Type: AWS::SageMaker::CodeRepository
+    Properties:
+      GitConfig:
+          RepositoryUrl: https://github.com/aws-samples/llm-apps-workshop
+
+  NotebookInstance:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      NotebookInstanceName: !Ref SageMakerNotebookName
+      InstanceType: ml.t3.2xlarge
+      RoleArn: !GetAtt Role.Arn
+      DefaultCodeRepository: !GetAtt CodeRepository.CodeRepositoryName
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref SageMakerIAMRole
+      Policies:
+        - PolicyName: CustomNotebookAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadFromOpenSearch
+                Effect: Allow
+                Action:
+                  - "es:ESHttp*"
+                Resource:
+                  - !Sub arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*
+              - Sid: ReadSecretFromSecretsManager
+                Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+              - Sid: ReadWriteFromECR
+                Effect: Allow
+                Action:
+                  - "ecr:BatchGetImage"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:DescribeImages"
+                  - "ecr:DescribeRepositories"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:ListImages"
+                  - "ecr:PutImage"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:CreateRepository"
+                  - "ecr:GetAuthorizationToken"
+                Resource: "*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess
+        - arn:aws:iam::aws:policy/TranslateReadOnly
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - sagemaker.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+
+  OpenSearchServiceDomain:
+    Type: AWS::OpenSearchService::Domain
+    Properties:
+      AccessPolicies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: '*'
+            Action: 'es:*'
+            Resource: !Sub arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*/*
+      EngineVersion: 'OpenSearch_2.5'
+      ClusterConfig:
+        InstanceType: "r6g.xlarge.search"
+      EBSOptions:
+        EBSEnabled: True
+        VolumeSize: 20
+        VolumeType: 'gp3'
+      AdvancedSecurityOptions:
+        AnonymousAuthEnabled: False
+        Enabled: True
+        InternalUserDatabaseEnabled: True
+        MasterUserOptions:
+          MasterUserName: !Sub ${OpenSearchUsername}
+          MasterUserPassword: !Sub ${OpenSearchPassword} 
+      NodeToNodeEncryptionOptions:
+        Enabled: True
+      EncryptionAtRestOptions:
+        Enabled: True
+        KmsKeyId: alias/aws/es
+      DomainEndpointOptions:
+        EnforceHTTPS: True
+
+  LLMEndpoint:
+    Type: "AWS::SageMaker::Endpoint"
+    Properties:
+      EndpointName: !Sub
+      - '${AppName}-flan-t5-xxl-endpoint-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      EndpointConfigName: !GetAtt LLMEndpointConfig.EndpointConfigName
+
+  LLMEndpointConfig:
+    Type: "AWS::SageMaker::EndpointConfig"
+    Properties:
+      EndpointConfigName: !Sub
+      - '${AppName}-flan-t5-xxl-endpoint-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      ProductionVariants:
+        - InitialInstanceCount: 1
+          InitialVariantWeight: 1.0
+          InstanceType: "ml.g5.12xlarge"
+          ModelName: !GetAtt LLMModel.ModelName
+          VariantName: !GetAtt LLMModel.ModelName
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W1200
+            reason: Solution does not have KMS encryption enabled by default
+
+  LLMModel:
+    Type: "AWS::SageMaker::Model"
+    Properties:
+      ModelName: !Sub
+      - '${AppName}-flan-t5-xxl-model-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      PrimaryContainer:
+        ModelDataUrl: !Sub "s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl.tar.gz"
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
+        Environment: {"TS_DEFAULT_WORKERS_PER_MODEL": "1"}
+        Mode: "SingleModel"
+      ExecutionRoleArn: !GetAtt Role.Arn
+
+  EmbeddingEndpoint:
+    Type: "AWS::SageMaker::Endpoint"
+    Properties:
+      EndpointName: !Sub
+      - '${AppName}-gpt-j-6b-endpoint-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      EndpointConfigName: !GetAtt EmbeddingEndpointConfig.EndpointConfigName
+
+  EmbeddingEndpointConfig:
+    Type: "AWS::SageMaker::EndpointConfig"
+    Properties:
+      EndpointConfigName: !Sub
+      - '${AppName}-gpt-j-6b-endppoint-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      ProductionVariants:
+        - InitialInstanceCount: 1
+          InitialVariantWeight: 1.0
+          InstanceType: "ml.g5.24xlarge"
+          ModelName: !GetAtt EmbeddingModel.ModelName
+          VariantName: !GetAtt EmbeddingModel.ModelName
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W1200
+            reason: Solution does not have KMS encryption enabled by default
+
+  EmbeddingModel:
+    Type: "AWS::SageMaker::Model"
+    Properties:
+      ModelName: !Sub
+      - '${AppName}-gpt-j-6b-model-${RandomGUID}'
+      - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+      PrimaryContainer:
+        ModelDataUrl: !Sub "s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-textembedding-gpt-j-6b.tar.gz"
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
+        Environment: {"TS_DEFAULT_WORKERS_PER_MODEL": "2"}
+        Mode: "SingleModel"
+      ExecutionRoleArn: !GetAtt Role.Arn
+
+  APIGateway:
+      Type: "AWS::ApiGateway::RestApi"
+      Properties:
+        Name: !Sub ${APIGatewayName}
+        Description: "LLMApp API Gateway"
+
+  ProxyResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt APIGateway.RootResourceId
+      RestApiId: !Ref APIGateway
+      PathPart: '{proxy+}'
+
+  APIGatewayRootMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        IntegrationResponses:
+          -
+            StatusCode: 200
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - lambdaArn: !GetAtt "LLMAppFunction.Arn"
+      ResourceId: !Ref ProxyResource
+      RestApiId: !Ref "APIGateway"
+
+
+  APIGatewayDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - "APIGatewayRootMethod"
+    Properties:
+      RestApiId: !Ref "APIGateway"
+      StageName: !Ref ApiStageName
+
+  LLMAppFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Description: Lambda function for providing an LLM app (text generation, RAG) endpoint.
+      Runtime: python3.9
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
+      Handler: app.main.handler
+      MemorySize: 512
+      Timeout: 60
+      Role: !GetAtt LambdaIAMRole.Arn
+      Tags: 
+        -
+          Key: Project
+          Value: !Ref AppName
+        -
+          Key: Version
+          Value: v3
+      Environment:
+        Variables:
+          TEXT2TEXT_ENDPOINT_NAME: !GetAtt  LLMEndpoint.EndpointName
+          EMBEDDING_ENDPOINT_NAME: !GetAtt  EmbeddingEndpoint.EndpointName
+          OPENSEARCH_SECRET: !Ref OpenSearchSecret
+          OPENSEARCH_DOMAIN_ENDPOINT: !GetAtt OpenSearchServiceDomain.DomainEndpoint
+          OPENSEARCH_INDEX: !Ref OpenSearchIndexName
+          APP_NAME: !Ref AppName
+
+  LambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "LLMAppFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${APIGateway}/*/*/*"
+
+  LambdaIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Effect: "Allow"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionName}:*"
+          PolicyName: "lambda"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: Logging
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Effect: "Allow"
+                Resource: "*"
+              - Sid: AllowSageMakerInvoke
+                Effect: Allow
+                Action:
+                  - sagemaker:InvokeEndpoint
+                Resource: !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/*"
+              - Sid: ReadSecretManagerSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+                
+          PolicyName: "lambdaVPC"
+      
+
+  lambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunctionName}"
+      RetentionInDays: 90
+
+Outputs:
+  OpenSearchDomainEndpoint:
+    Value:
+      'Fn::GetAtt':
+        - OpenSearchServiceDomain
+        - DomainEndpoint
+
+  OpenSourceDomainArn:
+    Value:
+      'Fn::GetAtt':
+        - OpenSearchServiceDomain
+        - Arn
+
+  OpenSearchDomainName:
+    Description: OpenSearch domain name
+    Value: !Ref OpenSearchServiceDomain
+
+  Region:
+    Description: Deployed Region
+    Value: !Ref AWS::Region
+
+  SageMakerNotebookURL:
+    Description: SageMaker Notebook Instance
+    Value: !Join
+      - ''
+      - - !Sub 'https://console.aws.amazon.com/sagemaker/home?region=${AWS::Region}#/notebook-instances/openNotebook/'
+        - !GetAtt NotebookInstance.NotebookInstanceName
+        - '?view=classic'
+
+  LLMEndpointName:
+    Description: Name of the LLM endpoint
+    Value: !GetAtt LLMEndpoint.EndpointName
+
+  EmbeddingEndpointName:
+    Description: Name of the LLM endpoint
+    Value: !GetAtt EmbeddingEndpoint.EndpointName
+  
+  OpenSearchSecret:
+    Description: Name of the OpenSearch secret in Secrets Manager
+    Value: !Ref OpenSearchSecret
+
+  LLMAppAPIEndpoint:
+    Description: "API (prod) stage endpoint"
+    Value: !Sub "https://${APIGateway}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/"
