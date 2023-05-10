@@ -47,7 +47,7 @@ Follow the steps listed below prior to running the notebooks included in this re
     git clone https://github.com/aws-samples/llm-apps-workshop    
     cd llm-apps-workshop/blogs/rag/app
     pip install -r requirements.txt
-    streamlit run app.py    
+    streamlit run webapp.py    
     ```
     This will start a streamlit app on SageMaker Studio, you can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app`
 
