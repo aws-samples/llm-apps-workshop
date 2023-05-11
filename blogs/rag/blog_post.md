@@ -325,8 +325,9 @@ procedure to run the app on your laptop.
 
     ```` markdown
     ```{bash}
-    # replace API_GW_ENDPOINT_FROM_CFN_OUTPUT with its actual value from the cloud formation stack
-    sed -i 's/__API_GW_ENDPOINT__/API_GW_ENDPOINT_FROM_CFN_OUTPUT/g' webapp.py
+    # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
+    EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
     ````
@@ -352,7 +353,10 @@ procedure to run the app on your laptop.
     tab
     `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app`
     (if you noted a port number different from 8501 in the previous step
-    then replace 8501 with that port number).
+    then replace 8501 with that port number). Here is a screenshot of
+    the app with a couple of user questions.
+    <img src="img/ML-14328-streamlit-app.png" id="fig-qa-bot"
+    alt="Question answering bot" />
 
 ### A closer look at the RAG implementation in the Lambda function
 
