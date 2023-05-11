@@ -4,7 +4,6 @@ for the UI and the Python requests package to talk to an API endpoint that
 implements text generation and Retrieval Augmented Generation (RAG) using LLMs
 and Amazon OpenSearch as the vector database.
 """
-import sys
 import boto3
 import streamlit as st
 import requests as req
@@ -27,7 +26,7 @@ HTTP_OK: int = 200
 # those as context to the LLM).
 MODE_RAG: str = 'RAG'
 MODE_TEXT2TEXT: str = 'Text Generation'
-MODE_VALUES: List[str] = [MODE_TEXT2TEXT, MODE_RAG]
+MODE_VALUES: List[str] = [MODE_RAG, MODE_TEXT2TEXT]
 
 # Currently we use the flan-t5-xxl for text generation
 # and gpt-j-6b for embeddings but in future we could support more
@@ -48,10 +47,6 @@ else:
     outputs: Dict = {}
     # REPLACE __API_GW_ENDPOINT__ WITH ACTUAL API GW ENDPOINT URL
     outputs["LLMAppAPIEndpoint"] = "__API_GW_ENDPOINT__"
-
-if outputs["LLMAppAPIEndpoint"] == "__API_GW_ENDPOINT__":
-    print(f"replace \"__API_GW_ENDPOINT__\" in webapp.py with its actual value from the cloud formation stack output and re-run")
-    sys.exit(1)
 
 # API endpoint
 # this is retrieved from the cloud formation template that was

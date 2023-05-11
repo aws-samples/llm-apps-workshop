@@ -167,8 +167,9 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
 1. The API Gateway endpoint URL that is available from the cloud formation stack output needs to be set in the `webapp.py` file. This is done by running the `sed` command shown below. Run the following commands to start a Streamlit app on SageMaker Studio.
 
     ```{{bash}}
-    # replace API_GW_ENDPOINT_FROM_CFN_OUTPUT with its actual value from the cloud formation stack
-    sed -i 's/__API_GW_ENDPOINT__/API_GW_ENDPOINT_FROM_CFN_OUTPUT/g' webapp.py
+    # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
+    EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
 
@@ -186,8 +187,8 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
       External URL: http://52.4.240.77:8501
     ```
 
-1. You can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app` (if you noted a port number different from 8501 in the previous step then replace 8501 with that port number).
-
+1. You can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app` (if you noted a port number different from 8501 in the previous step then replace 8501 with that port number). Here is a screenshot of the app with a couple of user questions.
+    ![Question answering bot](img/ML-14328-streamlit-app.png){#fig-qa-bot}
 
 ### A closer look at the RAG implementation in the Lambda function
 
