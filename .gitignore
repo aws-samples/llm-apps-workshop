@@ -16,3 +16,4 @@ blogs/rag/scripts/
 opensearch.yml
 1.*
 4.yaml
+blogs\opensearch-data-ingestion\blog_post.qmd

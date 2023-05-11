@@ -4,6 +4,7 @@ for the UI and the Python requests package to talk to an API endpoint that
 implements text generation and Retrieval Augmented Generation (RAG) using LLMs
 and Amazon OpenSearch as the vector database.
 """
+import sys
 import boto3
 import streamlit as st
 import requests as req
@@ -33,8 +34,24 @@ MODE_VALUES: List[str] = [MODE_TEXT2TEXT, MODE_RAG]
 TEXT2TEXT_MODEL_LIST: List[str] = ["flan-t5-xxl"]
 EMBEDDINGS_MODEL_LIST: List[str] = ["gpt-j-6b"]
 
-CFN_STACK_NAME: str = "llm-apps-blog-rag"
-outputs = get_cfn_outputs(CFN_STACK_NAME)
+# if running this app on a compute environment that has
+# IAM cloudformation::decribeStacks access read the 
+# stack outputs to get the name of the LLM endpoint
+CFN_ACCESS = False
+if CFN_ACCESS is True:
+    CFN_STACK_NAME: str = "llm-apps-blog-rag"
+    outputs = get_cfn_outputs(CFN_STACK_NAME)
+else:
+    # create an outputs dictionary with keys of interest
+    # the key value would need to be edited manually before
+    # running this app
+    outputs: Dict = {}
+    # REPLACE __API_GW_ENDPOINT__ WITH ACTUAL API GW ENDPOINT URL
+    outputs["LLMAppAPIEndpoint"] = "__API_GW_ENDPOINT__"
+
+if outputs["LLMAppAPIEndpoint"] == "__API_GW_ENDPOINT__":
+    print(f"replace \"__API_GW_ENDPOINT__\" in webapp.py with its actual value from the cloud formation stack output and re-run")
+    sys.exit(1)
 
 # API endpoint
 # this is retrieved from the cloud formation template that was

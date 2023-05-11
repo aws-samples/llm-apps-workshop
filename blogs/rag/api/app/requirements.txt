@@ -6,5 +6,4 @@ boto3==1.26.113
 faiss-cpu==1.7.3
 numpy==1.24.2
 opensearch-py==2.2.0
-#streamlit==1.21.0
-#streamlit-chat==0.0.2.2
+

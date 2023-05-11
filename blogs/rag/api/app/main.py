@@ -8,7 +8,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "API for QA with RAG and fine-tuned LLM"}
+    return {"message": "API for question answering bot"}
 
 app.include_router(api_router, prefix="/api/v1")
 handler = Mangum(app)

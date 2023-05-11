@@ -75,7 +75,7 @@ Parameters:
   SageMakerIAMRole:
     Description: Name of IAM role that will be created by this cloud formation template. The role name must _not_ already exist in your AWS account.
     Type: String
-    Default: "LLMAppsBlogIAMRole-"   
+    Default: "LLMAppsBlogIAMRole"   
   LambdaCodeS3Bucket:
     Description: Name of the S3 bucket containing the function.zip file for the LLMApp Lambda.
     Type: String
@@ -405,6 +405,7 @@ Resources:
       RetentionInDays: 90
 
 Outputs:
+  Description: URL for the OpenSearch domain endpoint
   OpenSearchDomainEndpoint:
     Value:
       'Fn::GetAtt':
@@ -412,6 +413,7 @@ Outputs:
         - DomainEndpoint
 
   OpenSourceDomainArn:
+    Description: ARN for the OpenSearch domain
     Value:
       'Fn::GetAtt':
         - OpenSearchServiceDomain
