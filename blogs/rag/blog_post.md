@@ -18,7 +18,7 @@ inference time, without this ability they might provide responses that
 are potentially incorrect or inadequate.
 
 A commonly used approach to address the above mentioned problem is to
-use a technique called Retrieval Augumented Generation (RAG). In the RAG
+use a technique called Retrieval Augmented Generation (RAG). In the RAG
 approach we convert the user question into vector embeddings using an
 LLM and then do a similarity search for these embeddings in a
 pre-populated vector database holding the embeddings for the enterprise
@@ -60,7 +60,7 @@ applications using Amazon Bedrock, so stay tuned.
 
 We use the [SageMaker docs](https://sagemaker.readthedocs.io) as the
 knowledge corpus for this post. We convert the html pages on this site
-into smaller overalapping chunks of information and then convert these
+into smaller overlapping chunks of information and then convert these
 chunks into embeddings using the gpt-j-6b model and store the embeddings
 into OpenSearch. We implement the RAG functionality inside an AWS Lambda
 function with an Amazon API Gateway to handle routing all requests to
@@ -186,8 +186,13 @@ To ingest the data, complete the following steps:
     to open it in JupyterLab. This notebook will ingest the [SageMaker
     docs](https://sagemaker.readthedocs.io) to an OpenSearch index
     called `llm_apps_workshop_embeddings`.
+
+    <figure>
     <img src="img/ML-14328-sm-nb-path.png" id="fig-open-data-ingestion-nb"
-    alt="Open Data Inestion Notebook" />
+    alt="Figure 4: Open Data Inestion Notebook" />
+    <figcaption aria-hidden="true">Figure 4: Open Data Inestion
+    Notebook</figcaption>
+    </figure>
 
 4.  Once the notebook is open, then, on the Run menu, choose **Run All
     Cells** to run the code in this notebook. This will download the
@@ -201,8 +206,8 @@ To ingest the data, complete the following steps:
 
     <figure>
     <img src="img/ML-14328-sm-nb-runall.png" id="fig-notebook-run-all-cells"
-    alt="Figure 4: Notebook Run All Cells" />
-    <figcaption aria-hidden="true">Figure 4: Notebook Run All
+    alt="Figure 5: Notebook Run All Cells" />
+    <figcaption aria-hidden="true">Figure 5: Notebook Run All
     Cells</figcaption>
     </figure>
 
@@ -220,14 +225,14 @@ To ingest the data, complete the following steps:
     - We create a custom container in which we will install the
       `langchain` and `opensearch-py` Python packages and then upload
       this container image to Amazon Elastic Container Registry (ECR).
-    - We use the Sagemaker `ScriptProcessor` class to create a Sagemaker
+    - We use the SageMaker `ScriptProcessor` class to create a SageMaker
       Processing job that will run on multiple nodes.
       - The data files available in S3 are automatically distributed
-        across in the Sagemaker Processing Job instances by setting
+        across in the SageMaker Processing Job instances by setting
         `s3_data_distribution_type='ShardedByS3Key'` as part of the
         `ProcessingInput` provided to the processing job.
       - Each node processes a subset of the files and this brings down
-        the overall time required to ingest the data into Opensearch.
+        the overall time required to ingest the data into OpenSearch.
       - Each node also uses Python `multiprocessing` to internally also
         parallelize the file processing. Thus, **there are two levels of
         parallelization happening, one at the cluster level where
@@ -315,8 +320,8 @@ procedure to run the app on your laptop.
 
 3.  The API Gateway endpoint URL that is available from the cloud
     formation stack output needs to be set in the `webapp.py` file. This
-    is done by running the `sed` command below. Run the following
-    commands to start a streamlit app on SageMaker Studio.
+    is done by running the `sed` command shown below. Run the following
+    commands to start a Streamlit app on SageMaker Studio.
 
     ```` markdown
     ```{bash}
@@ -372,7 +377,7 @@ async def rag_handler(req: Request) -> Dict[str, Any]:
     # dump the received request for debugging purposes
     logger.info(f"req={req}")
 
-    # initialize vector db and Sagemaker Endpoint
+    # initialize vector db and SageMaker Endpoint
     _init(req)
 
     # Use the vector db to find similar documents to the query
@@ -410,8 +415,8 @@ by deleting the CloudFormation stack as shown in the screenshot below.
 
 <figure>
 <img src="img/ML-14328-cfn-delete.png" id="fig-cleaning-up-2"
-alt="Figure 5: Cleaning Up" />
-<figcaption aria-hidden="true">Figure 5: Cleaning Up</figcaption>
+alt="Figure 6: Cleaning Up" />
+<figcaption aria-hidden="true">Figure 6: Cleaning Up</figcaption>
 </figure>
 
 ## Conclusion
@@ -420,8 +425,11 @@ In this post, we showed how to create an enterprise ready RAG solution
 using a combination of AWS service, open-source LLMs and open-source
 Python packages.
 
-We encourage you to learn more by exploring the [Amazon SageMaker Python
-SDK](https://sagemaker.readthedocs.io/en/stable/) and building a
+We encourage you to learn more by exploring [Amazon SageMaker
+JumpStart](https://aws.amazon.com/sagemaker/jumpstart/), [Amazon
+Titan](https://aws.amazon.com/bedrock/titan/) models, [Amazon
+Bedrock](https://aws.amazon.com/bedrock/) service and [Amazon OpenSearch
+Service](https://aws.amazon.com/opensearch-service/) and building a
 solution using the sample implementation provided in this post and a
 dataset relevant to your business. If you have questions or suggestions,
 leave a comment.
