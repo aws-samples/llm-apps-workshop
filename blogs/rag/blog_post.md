@@ -319,10 +319,10 @@ procedure to run the app on your laptop.
 3.  The API Gateway endpoint URL that is available from the cloud
     formation stack output needs to be set in the `webapp.py` file. This
     is done by running the `sed` command shown below. **Replace the Run
-    the `LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs` with
-    the value of the `LLMAppAPIEndpoint` field from the cloud formation
-    stack output** and then run the following commands to start a
-    Streamlit app on SageMaker Studio.
+    the `LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs` in
+    the shell commands below with the value of the `LLMAppAPIEndpoint`
+    field from the cloud formation stack output** and then run the
+    following commands to start a Streamlit app on SageMaker Studio.
 
     ``` bash
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
