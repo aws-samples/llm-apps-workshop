@@ -159,14 +159,14 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
 
 1. Run the following commands on the Terminal. These commands clone the code repository for this blog and install the Python packages needed by the application.
 
-    ```{{bash}}
+    ```{.bash}
     git clone https://github.com/aws-samples/llm-apps-workshop
     cd llm-apps-workshop/blogs/rag/app
     pip install -r requirements.txt
     ```
 1. The API Gateway endpoint URL that is available from the cloud formation stack output needs to be set in the `webapp.py` file. This is done by running the `sed` command shown below. Run the following commands to start a Streamlit app on SageMaker Studio.
 
-    ```{{bash}}
+    ```{.bash}
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
     EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py

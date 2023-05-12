@@ -310,27 +310,23 @@ procedure to run the app on your laptop.
     code repository for this blog and install the Python packages needed
     by the application.
 
-    ```` markdown
-    ```{bash}
+    ``` bash
     git clone https://github.com/aws-samples/llm-apps-workshop
     cd llm-apps-workshop/blogs/rag/app
     pip install -r requirements.txt
     ```
-    ````
 
 3.  The API Gateway endpoint URL that is available from the cloud
     formation stack output needs to be set in the `webapp.py` file. This
     is done by running the `sed` command shown below. Run the following
     commands to start a Streamlit app on SageMaker Studio.
 
-    ```` markdown
-    ```{bash}
+    ``` bash
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
     EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
-    ````
 
 4.  When the application runs successfully, you would see an output
     similar to the following (the IP addresses you will see would be

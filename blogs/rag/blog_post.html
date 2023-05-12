@@ -2783,14 +2783,14 @@ vertical-align: -.125em;
 <ol type="1">
 <li><p>Open SageMaker Studio and then open a new Terminal.</p></li>
 <li><p>Run the following commands on the Terminal. These commands clone the code repository for this blog and install the Python packages needed by the application.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource {{bash}} number-lines code-with-copy"><code class="sourceCode"><span id="cb3-1"><a href="#cb3-1"></a>git clone https://github.com/aws-samples/llm-apps-workshop</span>
-<span id="cb3-2"><a href="#cb3-2"></a>cd llm-apps-workshop/blogs/rag/app</span>
-<span id="cb3-3"><a href="#cb3-3"></a>pip install -r requirements.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">git</span> clone https://github.com/aws-samples/llm-apps-workshop</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="bu">cd</span> llm-apps-workshop/blogs/rag/app</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 <li><p>The API Gateway endpoint URL that is available from the cloud formation stack output needs to be set in the <code>webapp.py</code> file. This is done by running the <code>sed</code> command shown below. Run the following commands to start a Streamlit app on SageMaker Studio.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource {{bash}} number-lines code-with-copy"><code class="sourceCode"><span id="cb4-1"><a href="#cb4-1"></a># replace __API_GW_ENDPOINT__ with  output from the cloud formation stack</span>
-<span id="cb4-2"><a href="#cb4-2"></a>EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs</span>
-<span id="cb4-3"><a href="#cb4-3"></a>sed -i &quot;s|__API_GW_ENDPOINT__|$EP|g&quot; webapp.py</span>
-<span id="cb4-4"><a href="#cb4-4"></a>streamlit run webapp.py    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># replace __API_GW_ENDPOINT__ with  output from the cloud formation stack</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="va">EP</span><span class="op">=</span>LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs</span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="fu">sed</span> <span class="at">-i</span> <span class="st">&quot;s|__API_GW_ENDPOINT__|</span><span class="va">$EP</span><span class="st">|g&quot;</span> webapp.py</span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="ex">streamlit</span> run webapp.py    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 <li><p>When the application runs successfully, you would see an output similar to the following (the IP addresses you will see would be different from the ones shown below). Note the port number (typically 8501) from the output below.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="ex">sagemaker-user@studio$</span> streamlit run webapp.py </span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
