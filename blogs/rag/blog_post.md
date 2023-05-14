@@ -1,5 +1,6 @@
-Building a Powerful Question Answering Bot with Amazon SageMaker, Amazon
-OpenSearch, Streamlit, and LangChain: A Step-by-Step Guide
+Building a Powerful Question Answering Bot with Amazon SageMaker
+JumpStart, Amazon OpenSearch, Streamlit, and LangChain: A Step-by-Step
+Guide
 ================
 
 *Amit Arora*, *Xin Huang*, *Navneet Tuteja*
@@ -30,7 +31,9 @@ models were introduced by [Lewis et
 al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where
 parametric memory is a pre-trained seq2seq model and the non-parametric
 memory is a dense vector index of Wikipedia, accessed with a pre-trained
-neural retriever.
+neural retriever. To understand the overall structure of RAG approach,
+please see the [blog
+post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
 In this blog post we provide a step-by-step guide with all the building
 blocks for creating an enterprise ready RAG application such as a
@@ -44,11 +47,13 @@ interfacing with all the components and
 [Streamlit](https://streamlit.io/) for building the bot frontend.
 
 We provide a cloud formation template to stand up all the resources
-required for building this solution and then demonstrate how to use
-LangChain for tying everything together from interfacing with LLMs
-hosted on SageMaker, to chunking of knowledge base documents and
-ingesting document embeddings into OpenSearch and implementing the
-question answer task,
+required for building this solution. We then demonstrate how to use
+LangChain for tying everything together, this includes:
+
+- Interfacing with LLMs hosted on Amazon SageMaker.
+- Chunking of knowledge base documents.
+- Ingesting document embeddings into Amazon OpenSearch Service.
+- Implementing the question answer task.
 
 We can use the same architecture to swap the open-source models with the
 [Amazon Titan](https://aws.amazon.com/bedrock/titan/) models. After
@@ -60,13 +65,14 @@ applications using Amazon Bedrock, so stay tuned.
 
 We use the [SageMaker docs](https://sagemaker.readthedocs.io) as the
 knowledge corpus for this post. We convert the html pages on this site
-into smaller overlapping chunks of information and then convert these
-chunks into embeddings using the gpt-j-6b model and store the embeddings
-into OpenSearch. We implement the RAG functionality inside an AWS Lambda
+into smaller overlapping chunks (to retain some context continuity
+between chunks) of information and then convert these chunks into
+embeddings using the gpt-j-6b model and store the embeddings into
+OpenSearch. We implement the RAG functionality inside an AWS Lambda
 function with an Amazon API Gateway to handle routing all requests to
 the Lambda. We implement a chatbot application in Streamlit which
 invokes the Lambda via the API Gateway and the Lambda does a similarity
-search for the user question with the embeddings in OpenSearch. The
+search in the OpenSearch index for the embeddings of user question. The
 matching documents (chunks) are added to the prompt as context by the
 Lambda and then the Lambda use the flan-t5-xxl model deployed as a
 SageMaker Endpoint to generate an answer to the user question. All code
@@ -116,13 +122,16 @@ your own AWS account is as follows:
 
 1.  Run the AWS CloudFormation template provided with this blog in your
     account. This will create all the necessary infrastructure resources
-    needed for this solution.
+    needed for this solution which includes SageMaker Endpoints for the
+    LLMs, an OpenSearch cluster, API Gateway and Lambda, a SageMaker
+    Notebook and IAM roles, see “Figure 2 Cloud Formation Stack
+    Outputs”.
 
 2.  Run the
     [`data_ingestion_to_vectordb.ipynb`](./data_ingestion_to_vectordb.ipynb)
-    notebook in SageMaker Notebooks. This will ingest data from
-    [SageMaker docs](https://sagemaker.readthedocs.io) into an
-    OpenSearch index.
+    notebook in SageMaker Notebook created by the cloud formation
+    template. This will ingest data from [SageMaker
+    docs](https://sagemaker.readthedocs.io) into an OpenSearch index.
 
 3.  Run the Streamlit application on a Terminal in SageMaker Studio and
     open the URL for the application in a new browser tab.
@@ -199,10 +208,10 @@ To ingest the data, complete the following steps:
     dataset locally into the notebook and then ingest it into the
     OpenSearch index. This notebook takes about 20 minutes to run. The
     notebook also ingests the data into another vector database called
-    [`FAISS`](https://github.com/facebookresearch/faiss) for
-    illustration purposes, the FAISS index files are saved locally and
-    the uploaded to S3 so that they can optionally be used by the Lambda
-    function as an illustration of using an alternate vector database.
+    [`FAISS`](https://github.com/facebookresearch/faiss), the FAISS
+    index files are saved locally and the uploaded to S3 so that they
+    can optionally be used by the Lambda function as an illustration of
+    using an alternate vector database.
 
     <figure>
     <img src="img/ML-14328-sm-nb-runall.png" id="fig-notebook-run-all-cells"
@@ -211,14 +220,15 @@ To ingest the data, complete the following steps:
     Cells</figcaption>
     </figure>
 
-    We use LangChain’s `RecursiveCharacterTextSplitter` class to split
-    the documents into chunks and these documents, these chunks are then
-    converted into embeddings using LangChain
-    `SagemakerEndpointEmbeddingsJumpStart` class via the gpt-j-6b LLM.
-    These embeddings are then stored into OpenSearch, again using
-    LangChain, via the `OpenSearchVectorSearch` class. We package this
-    code into Python scripts that are provided to the SageMaker
-    Processing Job via a custom container. See the
+    We are now ready to split the documents into chunks, which can then
+    be converted into embeddings to be ingested into OpenSearch. We use
+    LangChain `RecursiveCharacterTextSplitter` class to chunk the
+    documents and then use the LangChain
+    `SagemakerEndpointEmbeddingsJumpStart` class to convert these chunks
+    into embeddings using the gpt-j-6b LLM. We store the embeddings into
+    OpenSearch via the LangChain `OpenSearchVectorSearch` class. We
+    package this code into Python scripts that are provided to the
+    SageMaker Processing Job via a custom container. See the
     [`data_ingestion_to_vectordb.ipynb`](./data_ingestion_to_vectordb.ipynb)
     notebook for the full code.
 
