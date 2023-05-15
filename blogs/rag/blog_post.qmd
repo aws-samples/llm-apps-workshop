@@ -8,6 +8,13 @@ format:
     code-copy: true
     code-line-numbers: true
     highlight-style: github
+  docx:
+    embed-resources: true
+    output-file: blog_post.docx
+    theme: cosmo
+    code-copy: true
+    code-line-numbers: true
+    highlight-style: github
   gfm: 
     output-file: blog_post.md
 ---
@@ -16,7 +23,7 @@ _Amit Arora_, _Xin Huang_, _Navneet Tuteja_
 
 One of the most common applications of Generative AI (GenAI) and Large Language Models (LLMs) in an enterprise environment is answering questions based on the enterprise's knowledge corpus. Pre-trained foundation models (FMs) perform well at Natural Language Understanding (NLU) tasks such summarization, text generation and question answering on a broad variety of topics but either struggle to provide accurate (without hallucinations) answers or completely fail at answering questions about content that they have not seen as part of their training data. Furthermore, FMs are trained with a point in time snapshot of data and have no inherent ability to access fresh data at inference time, without this ability they might provide responses that are potentially incorrect or inadequate.
 
-A commonly used approach to address the above mentioned problem is to use a technique called Retrieval Augmented Generation (RAG). In the RAG approach we convert the user question into vector embeddings using an LLM and then do a similarity search for these embeddings in a pre-populated vector database holding the embeddings for the enterprise knowledge corpus. A small number of similar documents (typically three) is added as context along with the user question to the "prompt" provided to another LLM and then that LLM generates an answer to the user question using information provided as context in the prompt. RAG models were introduced by [Lewis et al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where parametric memory is a pre-trained seq2seq model and the non-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural retriever. To understand the overall structure of RAG approach, please see the [blog post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
+A commonly used approach to address the above mentioned problem is to use a technique called Retrieval Augmented Generation (RAG). In the RAG based approach we convert the user question into vector embeddings using an LLM and then do a similarity search for these embeddings in a pre-populated vector database holding the embeddings for the enterprise knowledge corpus. A small number of similar documents (typically three) is added as context along with the user question to the "prompt" provided to another LLM and then that LLM generates an answer to the user question using information provided as context in the prompt. RAG models were introduced by [Lewis et al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where parametric memory is a pre-trained seq2seq model and the non-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural retriever. To understand the overall structure of RAG based approach, please see this [blog post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
 In this blog post we provide a step-by-step guide with all the building blocks for creating an enterprise ready RAG application such as a question answering bot. We use a combination of different AWS services, open-source foundation models ([FLAN-T5 XXL](https://huggingface.co/google/flan-t5-xxl) for text generation and [GPT-j-6B](https://huggingface.co/EleutherAI/gpt-j-6b) for embeddings) and packages such as [LangChain](https://python.langchain.com/en/latest/index.html) for interfacing with all the components and [Streamlit](https://streamlit.io/) for building the bot frontend. 
 

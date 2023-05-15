@@ -146,6 +146,7 @@ Resources:
                   - "ecr:UploadLayerPart"
                   - "ecr:CreateRepository"
                   - "ecr:GetAuthorizationToken"
+                  - "ec2:DescribeAvailabilityZones"
                 Resource: "*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
@@ -227,8 +228,8 @@ Resources:
       - '${AppName}-flan-t5-xxl-model-${RandomGUID}'
       - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
       PrimaryContainer:
-        ModelDataUrl: "s3://jumpstart-cache-prod-us-east-1/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl.tar.gz"
-        Image: "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
+        ModelDataUrl: !Sub "s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl.tar.gz"
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
         Environment: {"TS_DEFAULT_WORKERS_PER_MODEL": "1"}
         Mode: "SingleModel"
       ExecutionRoleArn: !GetAtt Role.Arn
@@ -266,8 +267,8 @@ Resources:
       - '${AppName}-gpt-j-6b-model-${RandomGUID}'
       - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
       PrimaryContainer:
-        ModelDataUrl: "s3://jumpstart-cache-prod-us-east-1/huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-textembedding-gpt-j-6b.tar.gz"
-        Image: "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
+        ModelDataUrl: !Sub "s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-textembedding-gpt-j-6b.tar.gz"
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38"
         Environment: {"TS_DEFAULT_WORKERS_PER_MODEL": "2"}
         Mode: "SingleModel"
       ExecutionRoleArn: !GetAtt Role.Arn
@@ -405,15 +406,15 @@ Resources:
       RetentionInDays: 90
 
 Outputs:
-  Description: URL for the OpenSearch domain endpoint
   OpenSearchDomainEndpoint:
+    Description: OpenSearch domain endpoint
     Value:
       'Fn::GetAtt':
         - OpenSearchServiceDomain
         - DomainEndpoint
 
   OpenSourceDomainArn:
-    Description: ARN for the OpenSearch domain
+    Description: OpenSearch domain ARN
     Value:
       'Fn::GetAtt':
         - OpenSearchServiceDomain
@@ -431,7 +432,7 @@ Outputs:
     Description: SageMaker Notebook Instance
     Value: !Join
       - ''
-      - - 'https://console.aws.amazon.com/sagemaker/home?region=us-east-1#/notebook-instances/openNotebook/'
+      - - !Sub 'https://console.aws.amazon.com/sagemaker/home?region=${AWS::Region}#/notebook-instances/openNotebook/'
         - !GetAtt NotebookInstance.NotebookInstanceName
         - '?view=classic'
 

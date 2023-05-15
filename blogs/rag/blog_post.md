@@ -20,8 +20,8 @@ are potentially incorrect or inadequate.
 
 A commonly used approach to address the above mentioned problem is to
 use a technique called Retrieval Augmented Generation (RAG). In the RAG
-approach we convert the user question into vector embeddings using an
-LLM and then do a similarity search for these embeddings in a
+based approach we convert the user question into vector embeddings using
+an LLM and then do a similarity search for these embeddings in a
 pre-populated vector database holding the embeddings for the enterprise
 knowledge corpus. A small number of similar documents (typically three)
 is added as context along with the user question to the “prompt”
@@ -31,8 +31,8 @@ models were introduced by [Lewis et
 al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where
 parametric memory is a pre-trained seq2seq model and the non-parametric
 memory is a dense vector index of Wikipedia, accessed with a pre-trained
-neural retriever. To understand the overall structure of RAG approach,
-please see the [blog
+neural retriever. To understand the overall structure of RAG based
+approach, please see this [blog
 post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
 In this blog post we provide a step-by-step guide with all the building
