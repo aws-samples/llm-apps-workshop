@@ -76,18 +76,26 @@ Parameters:
     Description: Name of IAM role that will be created by this cloud formation template. The role name must _not_ already exist in your AWS account.
     Type: String
     Default: "LLMAppsBlogIAMRole"   
-  LambdaCodeS3Bucket:
-    Description: Name of the S3 bucket containing the function.zip file for the LLMApp Lambda.
-    Type: String
-    Default: "aws-blogs-artifacts-public"  
-  LambdaCodeS3Key:
-    Description: The S3 key in the bucket containing the function.zip file for the LLMApp Lambda.
-    Type: String
-    Default: "artifacts/ML-14328/function.zip"   
+
   ApiStageName:
     Description: The APi Gateway API stage name
     Type: String
     Default: prod
+
+Mappings: 
+  RegionMap: 
+    us-east-1:
+      BUCKET: aws-blogs-artifacts-public
+      KEY: "artifacts/ML-14328/function.zip"
+    us-west-2:
+      BUCKET: aws-bigdata-blog-replica-us-west-2
+      KEY: "artifacts/ML-14328/function.zip"
+    eu-west-1:
+      BUCKET: aws-bigdata-blog-replica-eu-west-1
+      KEY: "artifacts/ML-14328/function.zip"
+    ap-northeast-1:
+      BUCKET: aws-bigdata-blog-replica-ap-northeast-1
+      KEY: "artifacts/ML-14328/function.zip"
 
 Resources:
   OpenSearchSecret:
@@ -319,8 +327,8 @@ Resources:
       Description: Lambda function for providing an LLM app (text generation, RAG) endpoint.
       Runtime: python3.9
       Code:
-        S3Bucket: !Ref LambdaCodeS3Bucket
-        S3Key: !Ref LambdaCodeS3Key
+        S3Bucket: !FindInMap [RegionMap, !Ref "AWS::Region", BUCKET]
+        S3Key: !FindInMap [RegionMap, !Ref "AWS::Region", KEY]
       Handler: app.main.handler
       MemorySize: 512
       Timeout: 60
