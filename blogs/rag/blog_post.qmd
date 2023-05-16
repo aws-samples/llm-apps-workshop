@@ -198,7 +198,7 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
       External URL: http://52.4.240.77:8501
     ```
 
-1. You can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app` (if you noted a port number different from 8501 in the previous step then replace 8501 with that port number). Here is a screenshot of the app with a couple of user questions.
+1. You can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/webapp` (if you noted a port number different from 8501 in the previous step then replace 8501 with that port number). Here is a screenshot of the app with a couple of user questions.
     ![Question answering bot](img/ML-14328-streamlit-app.png){#fig-qa-bot}
 
 ### A closer look at the RAG implementation in the Lambda function

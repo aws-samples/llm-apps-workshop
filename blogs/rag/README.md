@@ -48,7 +48,7 @@ Follow the steps listed below to create and run the RAG solution. The [blog_post
     pip install -r requirements.txt
     streamlit run webapp.py    
     ```
-    This will start a streamlit app on SageMaker Studio, you can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app`
+    This will start a streamlit app on SageMaker Studio, you can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/webapp`
 
 ### Building your version of the Lambda
 

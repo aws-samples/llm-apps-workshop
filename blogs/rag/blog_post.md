@@ -359,7 +359,7 @@ procedure to run the app on your laptop.
 
 5.  You can access the app by opening the following URL in a new browser
     tab
-    `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/app`
+    `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/webapp`
     (if you noted a port number different from 8501 in the previous step
     then replace 8501 with that port number). Here is a screenshot of
     the app with a couple of user questions.
