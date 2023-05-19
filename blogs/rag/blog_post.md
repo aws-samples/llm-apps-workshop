@@ -7,13 +7,16 @@ Guide
 
 One of the most common applications of Generative AI (GenAI) and Large
 Language Models (LLMs) in an enterprise environment is answering
-questions based on the enterprise’s knowledge corpus. Pre-trained
-foundation models (FMs) perform well at Natural Language Understanding
-(NLU) tasks such summarization, text generation and question answering
-on a broad variety of topics but either struggle to provide accurate
-(without hallucinations) answers or completely fail at answering
-questions about content that they have not seen as part of their
-training data. Furthermore, FMs are trained with a point in time
+questions based on the enterprise’s knowledge corpus. [Amazon
+Lex](https://aws.amazon.com/lex/) provides the framework for building
+[AI based
+chatbots](https://aws.amazon.com/solutions/retail/ai-for-chatbots)
+today. Pre-trained foundation models (FMs) perform well at Natural
+Language Understanding (NLU) tasks such summarization, text generation
+and question answering on a broad variety of topics but either struggle
+to provide accurate (without hallucinations) answers or completely fail
+at answering questions about content that they have not seen as part of
+their training data. Furthermore, FMs are trained with a point in time
 snapshot of data and have no inherent ability to access fresh data at
 inference time, without this ability they might provide responses that
 are potentially incorrect or inadequate.
@@ -147,6 +150,20 @@ To implement the solution provided in this post, you should have an [AWS
 account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
 and familiarity with LLMs, OpenSearch and SageMaker.
 
+We need access to accelerated instances (GPUs) for hosting the LLMs.
+This solution uses one instance each `ml.g5.12xlarge` and
+`ml.g5.24xlarge`, you can check the availability of these instances in
+your AWS account and request these instances as needed via the
+`Sevice Quota` increase request as shown in the screenshot below.
+
+<figure>
+<img src="img/ML-14328-service-quota.png"
+id="fig-service-quota-increase"
+alt="Figure 2: Service Quota Increase Request" />
+<figcaption aria-hidden="true">Figure 2: Service Quota Increase
+Request</figcaption>
+</figure>
+
 #### Use AWS Cloud Formation to create the solution stack
 
 We use AWS CloudFormation to create a SageMaker notebook called
@@ -168,8 +185,8 @@ steps.
 
 <figure>
 <img src="img/ML-14328-cfn-outputs.png" id="fig-cfn-outputs"
-alt="Figure 2: Cloud Formation Stack Outputs" />
-<figcaption aria-hidden="true">Figure 2: Cloud Formation Stack
+alt="Figure 3: Cloud Formation Stack Outputs" />
+<figcaption aria-hidden="true">Figure 3: Cloud Formation Stack
 Outputs</figcaption>
 </figure>
 
@@ -185,8 +202,8 @@ To ingest the data, complete the following steps:
 
     <figure>
     <img src="img/ML-14328-sm-nb-jl.png" id="fig-open-jl"
-    alt="Figure 3: Open JupyterLab" />
-    <figcaption aria-hidden="true">Figure 3: Open JupyterLab</figcaption>
+    alt="Figure 4: Open JupyterLab" />
+    <figcaption aria-hidden="true">Figure 4: Open JupyterLab</figcaption>
     </figure>
 
 3.  Choose
@@ -197,8 +214,8 @@ To ingest the data, complete the following steps:
 
     <figure>
     <img src="img/ML-14328-sm-nb-path.png" id="fig-open-data-ingestion-nb"
-    alt="Figure 4: Open Data Inestion Notebook" />
-    <figcaption aria-hidden="true">Figure 4: Open Data Inestion
+    alt="Figure 5: Open Data Inestion Notebook" />
+    <figcaption aria-hidden="true">Figure 5: Open Data Inestion
     Notebook</figcaption>
     </figure>
 
@@ -214,8 +231,8 @@ To ingest the data, complete the following steps:
 
     <figure>
     <img src="img/ML-14328-sm-nb-runall.png" id="fig-notebook-run-all-cells"
-    alt="Figure 5: Notebook Run All Cells" />
-    <figcaption aria-hidden="true">Figure 5: Notebook Run All
+    alt="Figure 6: Notebook Run All Cells" />
+    <figcaption aria-hidden="true">Figure 6: Notebook Run All
     Cells</figcaption>
     </figure>
 
@@ -327,23 +344,25 @@ procedure to run the app on your laptop.
 
 3.  The API Gateway endpoint URL that is available from the cloud
     formation stack output needs to be set in the `webapp.py` file. This
-    is done by running the `sed` command shown below. **Replace the Run
-    the `LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs` in
-    the shell commands below with the value of the `LLMAppAPIEndpoint`
-    field from the cloud formation stack output** and then run the
-    following commands to start a Streamlit app on SageMaker Studio.
+    is done by running the `sed` command shown below. **Replace the
+    `replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs`
+    in the shell commands below with the value of the
+    `LLMAppAPIEndpoint` field from the cloud formation stack output**
+    and then run the following commands to start a Streamlit app on
+    SageMaker Studio.
 
     ``` bash
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
-    EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    EP=replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
 
 4.  When the application runs successfully, you would see an output
     similar to the following (the IP addresses you will see would be
-    different from the ones shown below). Note the port number
-    (typically 8501) from the output below.
+    different from the ones shown below). **Note the port number
+    (typically 8501) from the output below**, we will use it as part of
+    the URL for app in the next step.
 
     ``` bash
     sagemaker-user@studio$ streamlit run webapp.py 
@@ -357,12 +376,15 @@ procedure to run the app on your laptop.
       External URL: http://52.4.240.77:8501
     ```
 
-5.  You can access the app by opening the following URL in a new browser
-    tab
-    `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/webapp`
-    (if you noted a port number different from 8501 in the previous step
-    then replace 8501 with that port number). Here is a screenshot of
-    the app with a couple of user questions.
+5.  You can access the app in a new browser tab using a URL that is
+    similar to your SageMaker Studio domain URL. For example, if your
+    SageMaker Studio URL is
+    `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/lab?`
+    then the URL for your Streamlit app will be
+    `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/**proxy/8501/webapp**`.
+    If the port number noted in the previous step is different from 8501
+    then use that instead of 8501 in the URL for the Streamlit app. Here
+    is a screenshot of the app with a couple of user questions.
     <img src="img/ML-14328-streamlit-app.png" id="fig-qa-bot"
     alt="Question answering bot" />
 
@@ -427,8 +449,8 @@ by deleting the CloudFormation stack as shown in the screenshot below.
 
 <figure>
 <img src="img/ML-14328-cfn-delete.png" id="fig-cleaning-up-2"
-alt="Figure 6: Cleaning Up" />
-<figcaption aria-hidden="true">Figure 6: Cleaning Up</figcaption>
+alt="Figure 7: Cleaning Up" />
+<figcaption aria-hidden="true">Figure 7: Cleaning Up</figcaption>
 </figure>
 
 ## Conclusion

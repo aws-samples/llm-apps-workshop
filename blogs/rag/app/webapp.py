@@ -34,7 +34,7 @@ TEXT2TEXT_MODEL_LIST: List[str] = ["flan-t5-xxl"]
 EMBEDDINGS_MODEL_LIST: List[str] = ["gpt-j-6b"]
 
 # if running this app on a compute environment that has
-# IAM cloudformation::decribeStacks access read the 
+# IAM cloudformation::DescribeStacks access read the 
 # stack outputs to get the name of the LLM endpoint
 CFN_ACCESS = False
 if CFN_ACCESS is True:

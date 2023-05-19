@@ -21,7 +21,7 @@ format:
 
 _Amit Arora_, _Xin Huang_, _Navneet Tuteja_
 
-One of the most common applications of Generative AI (GenAI) and Large Language Models (LLMs) in an enterprise environment is answering questions based on the enterprise's knowledge corpus. Pre-trained foundation models (FMs) perform well at Natural Language Understanding (NLU) tasks such summarization, text generation and question answering on a broad variety of topics but either struggle to provide accurate (without hallucinations) answers or completely fail at answering questions about content that they have not seen as part of their training data. Furthermore, FMs are trained with a point in time snapshot of data and have no inherent ability to access fresh data at inference time, without this ability they might provide responses that are potentially incorrect or inadequate.
+One of the most common applications of Generative AI (GenAI) and Large Language Models (LLMs) in an enterprise environment is answering questions based on the enterprise's knowledge corpus. [Amazon Lex](https://aws.amazon.com/lex/) provides the framework for building [AI based chatbots](https://aws.amazon.com/solutions/retail/ai-for-chatbots) today. Pre-trained foundation models (FMs) perform well at Natural Language Understanding (NLU) tasks such summarization, text generation and question answering on a broad variety of topics but either struggle to provide accurate (without hallucinations) answers or completely fail at answering questions about content that they have not seen as part of their training data. Furthermore, FMs are trained with a point in time snapshot of data and have no inherent ability to access fresh data at inference time, without this ability they might provide responses that are potentially incorrect or inadequate.
 
 A commonly used approach to address the above mentioned problem is to use a technique called Retrieval Augmented Generation (RAG). In the RAG based approach we convert the user question into vector embeddings using an LLM and then do a similarity search for these embeddings in a pre-populated vector database holding the embeddings for the enterprise knowledge corpus. A small number of similar documents (typically three) is added as context along with the user question to the "prompt" provided to another LLM and then that LLM generates an answer to the user question using information provided as context in the prompt. RAG models were introduced by [Lewis et al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where parametric memory is a pre-trained seq2seq model and the non-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural retriever. To understand the overall structure of RAG based approach, please see this [blog post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
@@ -72,6 +72,10 @@ These steps are discussed in detail in the sections below.
 ### Prerequisites
 
 To implement the solution provided in this post, you should have an [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup) and familiarity with LLMs, OpenSearch and SageMaker.
+
+We need access to accelerated instances (GPUs) for hosting the LLMs. This solution uses one instance each `ml.g5.12xlarge` and `ml.g5.24xlarge`, you can check the availability of these instances in your AWS account and request these instances as needed via the `Sevice Quota` increase request as shown in the screenshot below.
+
+![Service Quota Increase Request](img/ML-14328-service-quota.png){#fig-service-quota-increase}
 
 #### Use AWS Cloud Formation to create the solution stack
 
@@ -175,16 +179,16 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
     cd llm-apps-workshop/blogs/rag/app
     pip install -r requirements.txt
     ```
-1. The API Gateway endpoint URL that is available from the cloud formation stack output needs to be set in the `webapp.py` file. This is done by running the `sed` command shown below. **Replace the Run the `LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs` in the shell commands below with the value of the `LLMAppAPIEndpoint` field from the cloud formation stack output** and then run the following commands to start a Streamlit app on SageMaker Studio. 
+1. The API Gateway endpoint URL that is available from the cloud formation stack output needs to be set in the `webapp.py` file. This is done by running the `sed` command shown below. **Replace the `replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs` in the shell commands below with the value of the `LLMAppAPIEndpoint` field from the cloud formation stack output** and then run the following commands to start a Streamlit app on SageMaker Studio. 
 
     ```{.bash}
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
-    EP=LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    EP=replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
 
-1. When the application runs successfully, you would see an output similar to the following (the IP addresses you will see would be different from the ones shown below). Note the port number (typically 8501) from the output below.
+1. When the application runs successfully, you would see an output similar to the following (the IP addresses you will see would be different from the ones shown below). **Note the port number (typically 8501) from the output below**, we will use it as part of the URL for app in the next step.
 
     ```{.bash}
     sagemaker-user@studio$ streamlit run webapp.py 
@@ -198,7 +202,7 @@ SagMaker Studio provides a convenient platform to host the Streamlit web applica
       External URL: http://52.4.240.77:8501
     ```
 
-1. You can access the app by opening the following URL in a new browser tab `https://replace-with-your-studio-domain.studio.replace-with-your-region.sagemaker.aws/jupyter/default/proxy/8501/webapp` (if you noted a port number different from 8501 in the previous step then replace 8501 with that port number). Here is a screenshot of the app with a couple of user questions.
+1. You can access the app in a new browser tab using a URL that is similar to your SageMaker Studio domain URL. For example, if your SageMaker Studio URL is `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/lab?` then the URL for your Streamlit app will be `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/**proxy/8501/webapp**`. If the port number noted in the previous step is different from 8501 then use that instead of 8501 in the URL for the Streamlit app. Here is a screenshot of the app with a couple of user questions.
     ![Question answering bot](img/ML-14328-streamlit-app.png){#fig-qa-bot}
 
 ### A closer look at the RAG implementation in the Lambda function
