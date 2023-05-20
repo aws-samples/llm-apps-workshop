@@ -1,44 +1,42 @@
-Building a Powerful Question Answering Bot with Amazon SageMaker
-JumpStart, Amazon OpenSearch, Streamlit, and LangChain: A Step-by-Step
-Guide
+Build a powerful question answering bot with Amazon SageMaker, Amazon
+OpenSearch Service, Streamlit, and LangChain
 ================
 
 *Amit Arora*, *Xin Huang*, *Navneet Tuteja*
 
-One of the most common applications of Generative AI (GenAI) and Large
-Language Models (LLMs) in an enterprise environment is answering
-questions based on the enterprise’s knowledge corpus. [Amazon
+One of the most common applications of generative AI and large language
+models (LLMs) in an enterprise environment is answering questions based
+on the enterprise’s knowledge corpus. [Amazon
 Lex](https://aws.amazon.com/lex/) provides the framework for building
 [AI based
-chatbots](https://aws.amazon.com/solutions/retail/ai-for-chatbots)
-today. Pre-trained foundation models (FMs) perform well at Natural
-Language Understanding (NLU) tasks such summarization, text generation
-and question answering on a broad variety of topics but either struggle
-to provide accurate (without hallucinations) answers or completely fail
-at answering questions about content that they have not seen as part of
+chatbots](https://aws.amazon.com/solutions/retail/ai-for-chatbots).
+Pre-trained foundation models (FMs) perform well at natural language
+understanding (NLU) tasks such summarization, text generation and
+question answering on a broad variety of topics but either struggle to
+provide accurate (without hallucinations) answers or completely fail at
+answering questions about content that they haven’t seen as part of
 their training data. Furthermore, FMs are trained with a point in time
 snapshot of data and have no inherent ability to access fresh data at
-inference time, without this ability they might provide responses that
+inference time; without this ability they might provide responses that
 are potentially incorrect or inadequate.
 
-A commonly used approach to address the above mentioned problem is to
-use a technique called Retrieval Augmented Generation (RAG). In the RAG
-based approach we convert the user question into vector embeddings using
-an LLM and then do a similarity search for these embeddings in a
-pre-populated vector database holding the embeddings for the enterprise
-knowledge corpus. A small number of similar documents (typically three)
-is added as context along with the user question to the “prompt”
-provided to another LLM and then that LLM generates an answer to the
-user question using information provided as context in the prompt. RAG
-models were introduced by [Lewis et
-al.](https://arxiv.org/abs/2005.11401) in 2020 as a model where
-parametric memory is a pre-trained seq2seq model and the non-parametric
-memory is a dense vector index of Wikipedia, accessed with a pre-trained
-neural retriever. To understand the overall structure of RAG based
-approach, please see this [blog
+A commonly used approach to address this problem is to use a technique
+called Retrieval Augmented Generation (RAG). In the RAG-based approach
+we convert the user question into vector embeddings using an LLM and
+then do a similarity search for these embeddings in a pre-populated
+vector database holding the embeddings for the enterprise knowledge
+corpus. A small number of similar documents (typically three) is added
+as context along with the user question to the “prompt” provided to
+another LLM and then that LLM generates an answer to the user question
+using information provided as context in the prompt. RAG models were
+introduced by [Lewis et al.](https://arxiv.org/abs/2005.11401) in 2020
+as a model where parametric memory is a pre-trained seq2seq model and
+the non-parametric memory is a dense vector index of Wikipedia, accessed
+with a pre-trained neural retriever. To understand the overall structure
+of a RAG-based approach, refer to [blog
 post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
-In this blog post we provide a step-by-step guide with all the building
+In this post we provide a step-by-step guide with all the building
 blocks for creating an enterprise ready RAG application such as a
 question answering bot. We use a combination of different AWS services,
 open-source foundation models ([FLAN-T5
@@ -49,37 +47,38 @@ and packages such as
 interfacing with all the components and
 [Streamlit](https://streamlit.io/) for building the bot frontend.
 
-We provide a cloud formation template to stand up all the resources
+We provide an AWS Cloud Formation template to stand up all the resources
 required for building this solution. We then demonstrate how to use
-LangChain for tying everything together, this includes:
+LangChain for tying everything together:
 
 - Interfacing with LLMs hosted on Amazon SageMaker.
 - Chunking of knowledge base documents.
 - Ingesting document embeddings into Amazon OpenSearch Service.
-- Implementing the question answer task.
+- Implementing the question answering task.
 
 We can use the same architecture to swap the open-source models with the
 [Amazon Titan](https://aws.amazon.com/bedrock/titan/) models. After
 [Amazon Bedrock](https://aws.amazon.com/bedrock/) launches, we will
-publish a follow-up post showing how to implement similar GenAI
+publish a follow-up post showing how to implement similar generative AI
 applications using Amazon Bedrock, so stay tuned.
 
 ## Solution overview
 
 We use the [SageMaker docs](https://sagemaker.readthedocs.io) as the
-knowledge corpus for this post. We convert the html pages on this site
+knowledge corpus for this post. We convert the HTML pages on this site
 into smaller overlapping chunks (to retain some context continuity
 between chunks) of information and then convert these chunks into
-embeddings using the gpt-j-6b model and store the embeddings into
-OpenSearch. We implement the RAG functionality inside an AWS Lambda
-function with an Amazon API Gateway to handle routing all requests to
-the Lambda. We implement a chatbot application in Streamlit which
-invokes the Lambda via the API Gateway and the Lambda does a similarity
-search in the OpenSearch index for the embeddings of user question. The
-matching documents (chunks) are added to the prompt as context by the
-Lambda and then the Lambda use the flan-t5-xxl model deployed as a
-SageMaker Endpoint to generate an answer to the user question. All code
-for this post is available in the [GitHub
+embeddings using the gpt-j-6b model and store the embeddings in
+OpenSearch Service. We implement the RAG functionality inside an AWS
+Lambda function with Amazon API Gateway to handle routing all requests
+to the Lambda. We implement a chatbot application in Streamlit which
+invokes the function via the API Gateway and the function does a
+similarity search in the OpenSearch Service index for the embeddings of
+user question. The matching documents (chunks) are added to the prompt
+as context by the Lambda function and then the function uses the
+flan-t5-xxl model deployed as a SageMaker endpoint to generate an answer
+to the user question. All the code for this post is available in the
+[GitHub
 repo](https://github.com/aws-samples/llm-apps-workshop/tree/main/blogs/rag).
 
 The following figure represents the high-level architecture of the
@@ -91,70 +90,89 @@ alt="Figure 1: Architecture" />
 <figcaption aria-hidden="true">Figure 1: Architecture</figcaption>
 </figure>
 
+Step-by-step explanation:
+
+1.  The User provides a question via the Streamlit web application.
+2.  The Streamlit application invokes the API Gateway endpoint REST API.
+3.  The API Gateway invokes the Lambda function.
+4.  The function invokes the SageMaker endpoint to convert user question
+    into embeddings.
+5.  The function invokes invokes an OpenSearch Service API to find
+    similar documents to the user question.
+6.  The function creates a “prompt” with the user query and the “similar
+    documents” as context and asks the SageMaker endpoint to generate a
+    response.
+7.  The response is provided from the function to the API Gateway.
+8.  The API Gateway provides the response to the Streamlit application.
+9.  The User is able to view the response on the Streamlit application,
+
 As illustrated in the architecture diagram, we use the following AWS
 services:
 
-- [Amazon SageMaker](https://aws.amazon.com/pm/sagemaker) and [Amazon
-  SageMaker JumpStart](https://aws.amazon.com/sagemaker/jumpstart/) for
-  hosting the two LLMs.
-- [Amazon OpenSearch
-  Service](https://aws.amazon.com/opensearch-service/) for storing the
-  embeddings of the enterprise knowledge corpus and doing similarity
-  search with user questions.
-- [AWS Lambda](https://aws.amazon.com/lambda/) for implementing the RAG
-  functionality and exposing it as a REST endpoint via the [Amazon API
+- [SageMaker](https://aws.amazon.com/pm/sagemaker) and [Amazon SageMaker
+  JumpStart](https://aws.amazon.com/sagemaker/jumpstart/) for hosting
+  the two LLMs.
+- [OpenSearch Service](https://aws.amazon.com/opensearch-service/) for
+  storing the embeddings of the enterprise knowledge corpus and doing
+  similarity search with user questions.
+- [Lambda](https://aws.amazon.com/lambda/) for implementing the RAG
+  functionality and exposing it as a REST endpoint via the [API
   Gateway](https://aws.amazon.com/api-gateway/).
 - [Amazon SageMaker Processing
-  Jobs](https://docs.aws.amazon.com/sagemaker/latest/dg/processing-job.html)
+  jobs](https://docs.aws.amazon.com/sagemaker/latest/dg/processing-job.html)
   for large scale data ingestion into OpenSearch.
 - [Amazon SageMaker Studio](https://aws.amazon.com/sagemaker/studio/)
   for hosting the Streamlit application.
-- [AWS IAM](https://aws.amazon.com/iam/) roles and policies for access
-  management.
+- [AWS Identity and Access Management](https://aws.amazon.com/iam/)
+  roles and policies for access management.
 - [AWS CloudFormation](https://aws.amazon.com/cloudformation/) for
   creating the entire solution stack through infrastructure as code.
 
 In terms of open-source packages used in this solution, we use
 [LangChain](https://python.langchain.com/en/latest/index.html) for
-interfacing with OpenSearch and SageMaker, and
+interfacing with OpenSearch Service and SageMaker, and
 [FastAPI](https://github.com/tiangolo/fastapi) for implementing the REST
 API interface in the Lambda.
 
-The workflow for instantiating the solution presented in this blog in
+The workflow for instantiating the solution presented in this post in
 your own AWS account is as follows:
 
-1.  Run the AWS CloudFormation template provided with this blog in your
+1.  Run the CloudFormation template provided with this post in your
     account. This will create all the necessary infrastructure resources
-    needed for this solution which includes SageMaker Endpoints for the
-    LLMs, an OpenSearch cluster, API Gateway and Lambda, a SageMaker
-    Notebook and IAM roles, see “Figure 2 Cloud Formation Stack
-    Outputs”.
+    needed for this solution:
+
+    1.  SageMaker endpoints for the LLMs
+    2.  OpenSearch Service cluster
+    3.  API Gateway
+    4.  Lambda function
+    5.  SageMaker Notebook
+    6.  IAM roles
 
 2.  Run the
     [`data_ingestion_to_vectordb.ipynb`](./data_ingestion_to_vectordb.ipynb)
-    notebook in SageMaker Notebook created by the cloud formation
-    template. This will ingest data from [SageMaker
-    docs](https://sagemaker.readthedocs.io) into an OpenSearch index.
+    notebook in the SageMaker notebook to ingest data from [SageMaker
+    docs](https://sagemaker.readthedocs.io) into an OpenSearch Service
+    index.
 
-3.  Run the Streamlit application on a Terminal in SageMaker Studio and
-    open the URL for the application in a new browser tab.
+3.  Run the Streamlit application on a terminal in Studio and open the
+    URL for the application in a new browser tab.
 
 4.  Ask your questions about SageMaker via the chat interface provided
     by the Streamlit app and view the responses generated by the LLM.
 
-These steps are discussed in detail in the sections below.
+These steps are discussed in detail in the following sections.
 
 ### Prerequisites
 
 To implement the solution provided in this post, you should have an [AWS
 account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
-and familiarity with LLMs, OpenSearch and SageMaker.
+and familiarity with LLMs, OpenSearch Service and SageMaker.
 
 We need access to accelerated instances (GPUs) for hosting the LLMs.
-This solution uses one instance each `ml.g5.12xlarge` and
-`ml.g5.24xlarge`, you can check the availability of these instances in
-your AWS account and request these instances as needed via the
-`Sevice Quota` increase request as shown in the screenshot below.
+This solution uses one instance each of `ml.g5.12xlarge` and
+`ml.g5.24xlarge`; you can check the availability of these instances in
+your AWS account and request these instances as needed via a
+`Sevice Quota` increase request as shown in the following screenshot.
 
 <figure>
 <img src="img/ML-14328-service-quota.png"
@@ -169,19 +187,19 @@ Request</figcaption>
 We use AWS CloudFormation to create a SageMaker notebook called
 `aws-llm-apps-blog` and an IAM role called `LLMAppsBlogIAMRole`. Choose
 **Launch Stack** for the Region you want to deploy resources to. **This
-template takes about 15 minutes to run completely**.
+template takes about 15 minutes to complete**.
 
-|       AWS Region        |                                                                                                                                 Link                                                                                                                                  |
-|:-----------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| us-east-1 (N. Virginia) |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
-|   us-west-2 (Oregon)    |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
-|   eu-west-1 (Dublin)    |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
-| ap-northeast-1 (Tokyo)  | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml) |
+|   AWS Region   |                                                                                                                                 Link                                                                                                                                  |
+|:--------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|   us-east-1    |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
+|   us-west-2    |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
+|   eu-west-1    |   [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml)    |
+| ap-northeast-1 | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=llm-apps-blog-rag&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-14328/template.yml) |
 
-Once the cloud formation stack is created successfully click on the
-`Outputs` tab of the stack and note the `OpenSearchDomainEndpoint` and
-the `LLMAppAPIEndpoint`, we will be needing those in the subsequent
-steps.
+After the stack is created successfully, navigate to the stack’s
+`Outputs` tab on the AWS CloudFormation console and note the values for
+`OpenSearchDomainEndpoint` and `LLMAppAPIEndpoint`. We use those in the
+subsequent steps.
 
 <figure>
 <img src="img/ML-14328-cfn-outputs.png" id="fig-cfn-outputs"
@@ -190,7 +208,7 @@ alt="Figure 3: Cloud Formation Stack Outputs" />
 Outputs</figcaption>
 </figure>
 
-#### Ingest the data into OpenSearch
+#### Ingest the data into OpenSearch Service
 
 To ingest the data, complete the following steps:
 
@@ -209,8 +227,8 @@ To ingest the data, complete the following steps:
 3.  Choose
     [`data_ingestion_to_vectordb.ipynb`](./data_ingestion_to_vectordb.ipynb)
     to open it in JupyterLab. This notebook will ingest the [SageMaker
-    docs](https://sagemaker.readthedocs.io) to an OpenSearch index
-    called `llm_apps_workshop_embeddings`.
+    docs](https://sagemaker.readthedocs.io) to an OpenSearch Service
+    index called `llm_apps_workshop_embeddings`.
 
     <figure>
     <img src="img/ML-14328-sm-nb-path.png" id="fig-open-data-ingestion-nb"
@@ -219,15 +237,16 @@ To ingest the data, complete the following steps:
     Notebook</figcaption>
     </figure>
 
-4.  Once the notebook is open, then, on the Run menu, choose **Run All
-    Cells** to run the code in this notebook. This will download the
-    dataset locally into the notebook and then ingest it into the
-    OpenSearch index. This notebook takes about 20 minutes to run. The
+4.  When the notebook is open, on the Run menu, choose **Run All Cells**
+    to run the code in this notebook. This will download the dataset
+    locally into the notebook and then ingest it into the OpenSearch
+    Service index. This notebook takes about 20 minutes to run. The
     notebook also ingests the data into another vector database called
-    [`FAISS`](https://github.com/facebookresearch/faiss), the FAISS
-    index files are saved locally and the uploaded to S3 so that they
-    can optionally be used by the Lambda function as an illustration of
-    using an alternate vector database.
+    [`FAISS`](https://github.com/facebookresearch/faiss). The FAISS
+    index files are saved locally and the uploaded to Amazon Simple
+    Storage Service (S3) so that they can optionally be used by the
+    Lambda function as an illustration of using an alternate vector
+    database.
 
     <figure>
     <img src="img/ML-14328-sm-nb-runall.png" id="fig-notebook-run-all-cells"
@@ -236,36 +255,38 @@ To ingest the data, complete the following steps:
     Cells</figcaption>
     </figure>
 
-    We are now ready to split the documents into chunks, which can then
+    Now we’re ready to split the documents into chunks, which can then
     be converted into embeddings to be ingested into OpenSearch. We use
-    LangChain `RecursiveCharacterTextSplitter` class to chunk the
+    the LangChain `RecursiveCharacterTextSplitter` class to chunk the
     documents and then use the LangChain
     `SagemakerEndpointEmbeddingsJumpStart` class to convert these chunks
-    into embeddings using the gpt-j-6b LLM. We store the embeddings into
-    OpenSearch via the LangChain `OpenSearchVectorSearch` class. We
-    package this code into Python scripts that are provided to the
+    into embeddings using the gpt-j-6b LLM. We store the embeddings in
+    OpenSearch Service via the LangChain `OpenSearchVectorSearch` class.
+    We package this code into Python scripts that are provided to the
     SageMaker Processing Job via a custom container. See the
-    [`data_ingestion_to_vectordb.ipynb`](./data_ingestion_to_vectordb.ipynb)
+    [`data_ingestion_to_vectordb.ipynb`](https://github.com/aws-samples/llm-apps-workshop/blob/main/blogs/rag/data_ingestion_to_vectordb.ipynb)
     notebook for the full code.
 
-    - We create a custom container in which we will install the
-      `langchain` and `opensearch-py` Python packages and then upload
-      this container image to Amazon Elastic Container Registry (ECR).
-    - We use the SageMaker `ScriptProcessor` class to create a SageMaker
-      Processing job that will run on multiple nodes.
-      - The data files available in S3 are automatically distributed
-        across in the SageMaker Processing Job instances by setting
-        `s3_data_distribution_type='ShardedByS3Key'` as part of the
-        `ProcessingInput` provided to the processing job.
-      - Each node processes a subset of the files and this brings down
-        the overall time required to ingest the data into OpenSearch.
-      - Each node also uses Python `multiprocessing` to internally also
-        parallelize the file processing. Thus, **there are two levels of
-        parallelization happening, one at the cluster level where
-        individual nodes are distributing the work (files) amongst
-        themselves and another at the node level where the files in a
-        node are also split between multiple processes running on the
-        node**.
+    1.  Create a custom container, then install in it the `LangChain`
+        and `opensearch-py` Python packages.
+    2.  Upload this container image to Amazon Elastic Container Registry
+        (ECR).
+    3.  We use the SageMaker `ScriptProcessor` class to create a
+        SageMaker Processing job that will run on multiple nodes.
+        - The data files available in Amazon S3 are automatically
+          distributed across in the SageMaker Processing job instances
+          by setting `s3_data_distribution_type='ShardedByS3Key'` as
+          part of the `ProcessingInput` provided to the processing job.
+        - Each node processes a subset of the files and this brings down
+          the overall time required to ingest the data into OpenSearch
+          Service.
+        - Each node also uses Python `multiprocessing` to internally
+          also parallelize the file processing. Therefore, **there are
+          two levels of parallelization happening, one at the cluster
+          level where individual nodes are distributing the work (files)
+          amongst themselves and another at the node level where the
+          files in a node are also split between multiple processes
+          running on the node**.
 
     ``` python
     # setup the ScriptProcessor with the above parameters
@@ -304,37 +325,36 @@ To ingest the data, complete the following steps:
     ```
 
 5.  Close the notebook after all cells run without any error. Your data
-    is now available in OpenSearch. The following screenshot shows the
-    count of documents in the `llm_apps_workshop_embeddings` index
-    created in OpenSearch. Type the following URL in your browser’s
-    address bar to get a count of documents in the
-    `llm_apps_workshop_embeddings` index. Use the OpenSearch domain
-    endpoint from the cloud formation stack outputs in the URL below.
+    is now available in OpenSearch Service. Enter the following URL in
+    your browser’s address bar to get a count of documents in the
+    `llm_apps_workshop_embeddings` index. Use the OpenSearch Service
+    domain endpoint from the CloudFormation stack outputs in the URL
+    below.
 
         https://your-opensearch-domina-endpoint/llm_apps_workshop_embeddings/_count
 
-    The browser window should show an output similar to the one below.
+    The browser window should show an output similar to the following.
     This output shows that 5,667 documents were ingested into the
     `llm_apps_workshop_embeddings` index.
     `{"count":5667,"_shards":{"total":5,"successful":5,"skipped":0,"failed":0}}`
 
-### Run the Streamlit application in SageMaker Studio
+### Run the Streamlit application in Studio
 
-We are now ready to run the Streamlit web application for our question
+Now we’re ready to run the Streamlit web application for our question
 answering bot. This application allows the user to ask a question and
 then fetches the answer via the `/llm/rag` REST API endpoint provided by
 the Lambda function.
 
-SagMaker Studio provides a convenient platform to host the Streamlit web
+Studio provides a convenient platform to host the Streamlit web
 application. The following steps describes how to run the Streamlit app
-on SageMaker Studio. Alternatively, you could also follow the same
-procedure to run the app on your laptop.
+on Studio. Alternatively, you could also follow the same procedure to
+run the app on your laptop.
 
-1.  Open SageMaker Studio and then open a new Terminal.
+1.  Open Studio and then open a new terminal.
 
-2.  Run the following commands on the Terminal. These commands clone the
-    code repository for this blog and install the Python packages needed
-    by the application.
+2.  Run the following commands on the terminal to clone the code
+    repository for this post and install the Python packages needed by
+    the application:
 
     ``` bash
     git clone https://github.com/aws-samples/llm-apps-workshop
@@ -342,27 +362,26 @@ procedure to run the app on your laptop.
     pip install -r requirements.txt
     ```
 
-3.  The API Gateway endpoint URL that is available from the cloud
-    formation stack output needs to be set in the `webapp.py` file. This
-    is done by running the `sed` command shown below. **Replace the
+3.  The API Gateway endpoint URL that is available from the
+    CloudFormation stack output needs to be set in the webapp.py file.
+    This is done by running the following `sed` command. Replace the
     `replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs`
-    in the shell commands below with the value of the
-    `LLMAppAPIEndpoint` field from the cloud formation stack output**
-    and then run the following commands to start a Streamlit app on
-    SageMaker Studio.
+    in the shell commands with the value of the `LLMAppAPIEndpoint`
+    field from the CloudFormation stack output and then run the
+    following commands to start a Streamlit app on Studio.
 
     ``` bash
-    # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
     EP=replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
     ```
 
-4.  When the application runs successfully, you would see an output
-    similar to the following (the IP addresses you will see would be
-    different from the ones shown below). **Note the port number
-    (typically 8501) from the output below**, we will use it as part of
-    the URL for app in the next step.
+4.  When the application runs successfully, you’ll see an output similar
+    to the following (the IP addresses you will see will be different
+    from the ones shown in this example). **Note the port number
+    (typically 8501) from the output** to use as part of the URL for app
+    in the next step.
 
     ``` bash
     sagemaker-user@studio$ streamlit run webapp.py 
@@ -377,27 +396,26 @@ procedure to run the app on your laptop.
     ```
 
 5.  You can access the app in a new browser tab using a URL that is
-    similar to your SageMaker Studio domain URL. For example, if your
-    SageMaker Studio URL is
+    similar to your Studio domain URL. For example, if your Studio URL
+    is
     `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/lab?`
     then the URL for your Streamlit app will be
     `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/**proxy/8501/webapp**`.
     If the port number noted in the previous step is different from 8501
-    then use that instead of 8501 in the URL for the Streamlit app. Here
-    is a screenshot of the app with a couple of user questions.
+    then use that instead of 8501 in the URL for the Streamlit app. The
+    following screenshot shows the app with a couple of user questions.
     <img src="img/ML-14328-streamlit-app.png" id="fig-qa-bot"
     alt="Question answering bot" />
 
 ### A closer look at the RAG implementation in the Lambda function
 
-Now that we have the application working end-to-end, lets take a closer
+Now that we have the application working end to end, lets take a closer
 look at the Lambda function. The Lambda function uses
 [`FastAPI`](https://fastapi.tiangolo.com/lo/) to implement the REST API
 for RAG and the [`Mangum`](https://pypi.org/project/mangum/) package to
-wrap the API with a handler that we will package and deploy in the AWS
-Lambda. We use the AWS API Gateway to route all incoming requests to
-invoke the lambda and handle the routing internally within our
-application.
+wrap the API with a handler that we package and deploy in the function.
+We use the API Gateway to route all incoming requests to invoke the
+function and handle the routing internally within our application.
 
 The following code snippet shows how we find documents in the OpenSearch
 index that are similar to the user question and then create a prompt by
@@ -445,7 +463,8 @@ async def rag_handler(req: Request) -> Dict[str, Any]:
 ## Clean up
 
 To avoid incurring future charges, delete the resources. You can do this
-by deleting the CloudFormation stack as shown in the screenshot below.
+by deleting the CloudFormation stack as shown in the following
+screenshot.
 
 <figure>
 <img src="img/ML-14328-cfn-delete.png" id="fig-cleaning-up-2"
@@ -459,10 +478,10 @@ In this post, we showed how to create an enterprise ready RAG solution
 using a combination of AWS service, open-source LLMs and open-source
 Python packages.
 
-We encourage you to learn more by exploring [Amazon SageMaker
-JumpStart](https://aws.amazon.com/sagemaker/jumpstart/), [Amazon
+We encourage you to learn more by exploring
+[JumpStart](https://aws.amazon.com/sagemaker/jumpstart/), [Amazon
 Titan](https://aws.amazon.com/bedrock/titan/) models, [Amazon
-Bedrock](https://aws.amazon.com/bedrock/) service and [Amazon OpenSearch
+Bedrock](https://aws.amazon.com/bedrock/), and [OpenSearch
 Service](https://aws.amazon.com/opensearch-service/) and building a
 solution using the sample implementation provided in this post and a
 dataset relevant to your business. If you have questions or suggestions,
@@ -473,7 +492,7 @@ leave a comment.
 ## Author bio
 
 <img style="float: left; margin: 0 10px 0 0;" src="img/ML-14328-Amit.png">Amit
-Arora is an AI and ML specialist architect at Amazon Web Services,
+Arora is an AI and ML Specialist Architect at Amazon Web Services,
 helping enterprise customers use cloud-based machine learning services
 to rapidly scale their innovations. He is also an adjunct lecturer in
 the MS data science and analytics program at Georgetown University in
