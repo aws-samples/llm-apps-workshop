@@ -33,8 +33,9 @@ introduced by [Lewis et al.](https://arxiv.org/abs/2005.11401) in 2020
 as a model where parametric memory is a pre-trained seq2seq model and
 the non-parametric memory is a dense vector index of Wikipedia, accessed
 with a pre-trained neural retriever. To understand the overall structure
-of a RAG-based approach, refer to [blog
-post](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
+of a RAG-based approach, refer to [Question answering using Retrieval
+Augmented Generation with foundation models in Amazon SageMaker
+JumpStart](https://aws.amazon.com/blogs/machine-learning/question-answering-using-retrieval-augmented-generation-with-foundation-models-in-amazon-sagemaker-jumpstart/).
 
 In this post we provide a step-by-step guide with all the building
 blocks for creating an enterprise ready RAG application such as a
@@ -186,8 +187,12 @@ Request</figcaption>
 
 We use AWS CloudFormation to create a SageMaker notebook called
 `aws-llm-apps-blog` and an IAM role called `LLMAppsBlogIAMRole`. Choose
-**Launch Stack** for the Region you want to deploy resources to. **This
-template takes about 15 minutes to complete**.
+**Launch Stack** for the Region you want to deploy resources to. All
+parameters needed by the CloudFormation template have default values
+already filled in, except for the OpenSearch Service password which
+you’d have to provide. Make a note of the OpenSearch Service username
+and password, we use those in subsequent steps. **This template takes
+about 15 minutes to complete**.
 
 |   AWS Region   |                                                                                                                                 Link                                                                                                                                  |
 |:--------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -232,8 +237,8 @@ To ingest the data, complete the following steps:
 
     <figure>
     <img src="img/ML-14328-sm-nb-path.png" id="fig-open-data-ingestion-nb"
-    alt="Figure 5: Open Data Inestion Notebook" />
-    <figcaption aria-hidden="true">Figure 5: Open Data Inestion
+    alt="Figure 5: Open Data Ingestion Notebook" />
+    <figcaption aria-hidden="true">Figure 5: Open Data Ingestion
     Notebook</figcaption>
     </figure>
 
@@ -329,7 +334,8 @@ To ingest the data, complete the following steps:
     your browser’s address bar to get a count of documents in the
     `llm_apps_workshop_embeddings` index. Use the OpenSearch Service
     domain endpoint from the CloudFormation stack outputs in the URL
-    below.
+    below. You’d be prompted for the OpenSearch Service username and
+    password, these are available from the CloudFormations stack.
 
         https://your-opensearch-domina-endpoint/llm_apps_workshop_embeddings/_count
 
@@ -400,9 +406,10 @@ run the app on your laptop.
     is
     `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/lab?`
     then the URL for your Streamlit app will be
-    `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/**proxy/8501/webapp**`.
-    If the port number noted in the previous step is different from 8501
-    then use that instead of 8501 in the URL for the Streamlit app. The
+    `https://d-randomidentifier.studio.us-east-1.sagemaker.aws/jupyter/default/proxy/8501/webapp`
+    (notice that *lab* is replaced with *proxy/8501/webapp*). If the
+    port number noted in the previous step is different from 8501 then
+    use that instead of 8501 in the URL for the Streamlit app. The
     following screenshot shows the app with a couple of user questions.
     <img src="img/ML-14328-streamlit-app.png" id="fig-qa-bot"
     alt="Question answering bot" />
