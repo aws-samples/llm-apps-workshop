@@ -518,7 +518,7 @@ Statistical Society: Series A.
 
 <br><br>
 
-<img style="float: left; margin: 0 10px 0 0;" src="img/ML-14328-ntuteja.jfif">Navneet
+<img style="float: left; margin: 0 10px 0 0;" src="img/ML-14328-ntuteja.png">Navneet
 Tuteja is a Data Specialist at Amazon Web Services. Before joining AWS,
 Navneet worked as a facilitator for organizations seeking to modernize
 their data architectures and implement comprehensive AI/ML solutions.
