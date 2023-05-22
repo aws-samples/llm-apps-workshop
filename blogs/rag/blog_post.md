@@ -371,13 +371,13 @@ run the app on your laptop.
 3.  The API Gateway endpoint URL that is available from the
     CloudFormation stack output needs to be set in the webapp.py file.
     This is done by running the following `sed` command. Replace the
-    `replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs`
+    `<replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs>`
     in the shell commands with the value of the `LLMAppAPIEndpoint`
     field from the CloudFormation stack output and then run the
     following commands to start a Streamlit app on Studio.
 
     ``` bash
-    EP=replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs
+    EP=<replace-with-LLMAppAPIEndpoint-value-from-cloudformation-stack-outputs>
     # replace __API_GW_ENDPOINT__ with  output from the cloud formation stack
     sed -i "s|__API_GW_ENDPOINT__|$EP|g" webapp.py
     streamlit run webapp.py    
