@@ -337,7 +337,7 @@ To ingest the data, complete the following steps:
     below. You’d be prompted for the OpenSearch Service username and
     password, these are available from the CloudFormations stack.
 
-        https://your-opensearch-domina-endpoint/llm_apps_workshop_embeddings/_count
+        https://<your-opensearch-domain-endpoint>/llm_apps_workshop_embeddings/_count
 
     The browser window should show an output similar to the following.
     This output shows that 5,667 documents were ingested into the

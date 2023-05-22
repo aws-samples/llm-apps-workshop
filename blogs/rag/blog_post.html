@@ -2801,7 +2801,7 @@ vertical-align: -.125em;
 <span id="cb1-32"><a href="#cb1-32"></a>                        <span class="st">&quot;--create-index-hint-file&quot;</span>, CREATE_OS_INDEX_HINT_FILE,</span>
 <span id="cb1-33"><a href="#cb1-33"></a>                        <span class="st">&quot;--process-count&quot;</span>, <span class="st">&quot;2&quot;</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 <li><p>Close the notebook after all cells run without any error. Your data is now available in OpenSearch Service. Enter the following URL in your browser’s address bar to get a count of documents in the <code>llm_apps_workshop_embeddings</code> index. Use the OpenSearch Service domain endpoint from the CloudFormation stack outputs in the URL below. You’d be prompted for the OpenSearch Service username and password, these are available from the CloudFormations stack.</p>
-<pre><code>https://your-opensearch-domina-endpoint/llm_apps_workshop_embeddings/_count</code></pre>
+<pre><code>https://&lt;your-opensearch-domain-endpoint&gt;/llm_apps_workshop_embeddings/_count</code></pre>
 <p>The browser window should show an output similar to the following. This output shows that 5,667 documents were ingested into the <code>llm_apps_workshop_embeddings</code> index. <code>{&quot;count&quot;:5667,&quot;_shards&quot;:{&quot;total&quot;:5,&quot;successful&quot;:5,&quot;skipped&quot;:0,&quot;failed&quot;:0}}</code></p></li>
 </ol>
 </section>
