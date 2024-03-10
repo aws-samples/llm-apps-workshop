@@ -93,6 +93,9 @@ Mappings:
     eu-west-1:
       BUCKET: aws-bigdata-blog-replica-eu-west-1
       KEY: "artifacts/ML-14328/function.zip"
+    eu-west-2:
+      BUCKET: aws-bigdata-blog-replica-eu-west-2
+      KEY: "artifacts/ML-14328/function.zip"
     ap-northeast-1:
       BUCKET: aws-bigdata-blog-replica-ap-northeast-1
       KEY: "artifacts/ML-14328/function.zip"
@@ -322,6 +325,7 @@ Resources:
 
   LLMAppFunction:
     Type: AWS::Lambda::Function
+    DependsOn: OpenSearchServiceDomain
     Properties:
       FunctionName: !Ref LambdaFunctionName
       Description: Lambda function for providing an LLM app (text generation, RAG) endpoint.
