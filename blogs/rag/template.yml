@@ -8,8 +8,6 @@ Metadata:
           default: Required Parameters
         Parameters:
           - AppName          
-          - OpenSearchUsername
-          - OpenSearchPassword
           - OpenSearchIndexName
           - LambdaFunctionName
           - APIGatewayName
@@ -17,10 +15,6 @@ Metadata:
     ParameterLabels:      
       AppName:
         default: Name of the overall application
-      OpenSearchUsername:
-        default: OpenSearch cluster username
-      OpenSearchPassword:
-        default: OpenSearch cluster password
       OpenSearchIndexName:
         default: OpenSearch index name
       LambdaFunctionName:
@@ -31,20 +25,15 @@ Metadata:
         default: Name of SageMaker Notebook Instance
       
 Parameters:
-  OpenSearchUsername:
-    AllowedPattern: '^[a-zA-Z0-9]+$'
-    Default: opensearchuser
-    Description: User name for the account that will be added to the OpenSearch cluster.
-    MaxLength: '25'
-    MinLength: '5'
-    Type: String
-  OpenSearchPassword:
-    AllowedPattern: '(?=^.{8,32}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*'
-    Description: Password for the account named above. Must be at least 8 characters containing letters, numbers and symbols
-    MaxLength: '32'
-    MinLength: '8'
-    NoEcho: 'true'
-    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: ID of the existing VPC where OpenSearch will be deployed.
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of Subnet IDs for the OpenSearch domain. Provide one subnet ID per Availability Zone.
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: List of Security Group IDs to associate with the OpenSearch domain.
   OpenSearchIndexName:
     Default: llm_apps_workshop_embeddings
     Type: String    
@@ -106,7 +95,16 @@ Resources:
     Properties:
       Name: !Sub OpenSearchSecret-${AWS::StackName}
       Description: OpenSearch username and password
-      SecretString: !Sub '{ "username" : "${OpenSearchUsername}", "password" : "${OpenSearchPassword}" }'
+      GenerateSecretString:
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+        RequireEachIncludedType: true
+        ExcludePunctuation: false
+        ExcludeLowercase: false
+        ExcludeNumbers: false
+        ExcludeUppercase: false
+        SecretStringTemplate: '{"username":"opensearchuser"}'
+        GenerateStringKey: password
 
   CodeRepository:
     Type: AWS::SageMaker::CodeRepository
@@ -117,6 +115,10 @@ Resources:
   NotebookInstance:
     Type: AWS::SageMaker::NotebookInstance
     Properties:
+      SubnetId: !Select 
+        - 0
+        - !Ref SubnetIds
+      SecurityGroupIds: !Ref SecurityGroupIds
       NotebookInstanceName: !Ref SageMakerNotebookName
       InstanceType: ml.t3.2xlarge
       RoleArn: !GetAtt Role.Arn
@@ -173,9 +175,13 @@ Resources:
             Action:
               - 'sts:AssumeRole'
 
+
   OpenSearchServiceDomain:
     Type: AWS::OpenSearchService::Domain
     Properties:
+      VPCOptions:
+        SubnetIds: !Ref SubnetIds
+        SecurityGroupIds: !Ref SecurityGroupIds
       AccessPolicies:
         Version: 2012-10-17
         Statement:
@@ -187,6 +193,7 @@ Resources:
       EngineVersion: 'OpenSearch_2.5'
       ClusterConfig:
         InstanceType: "r6g.xlarge.search"
+        InstanceCount: 2 # To specify an even number of data nodes
       EBSOptions:
         EBSEnabled: True
         VolumeSize: 20
@@ -196,8 +203,8 @@ Resources:
         Enabled: True
         InternalUserDatabaseEnabled: True
         MasterUserOptions:
-          MasterUserName: !Sub ${OpenSearchUsername}
-          MasterUserPassword: !Sub ${OpenSearchPassword} 
+          MasterUserName: !Sub "{{resolve:secretsmanager:OpenSearchSecret-${AWS::StackName}:SecretString:username}}"
+          MasterUserPassword: !Sub "{{resolve:secretsmanager:OpenSearchSecret-${AWS::StackName}:SecretString:password}}"
       NodeToNodeEncryptionOptions:
         Enabled: True
       EncryptionAtRestOptions:
